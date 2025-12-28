@@ -1,0 +1,93 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+env/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Testing & Debug files
+test_*.py
+debug_*.py
+verify_*.py
+*_test.py
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Next.js
+.next/
+out/
+.vercel
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Documentation (keep only README.md and main docs)
+DUAL_LLM_ARCHITECTURE.md
+IMPLEMENTATION_COMPLETE.md
+LLM_DRIVEN_ARCHITECTURE.md
+LLM_INTEGRATION.md
+LLM_ONLY_MODE.md
+MCP_LLM_ARCHITECTURE.md
+QUICK_START_LLM.md
+SEARCH_CAPABILITIES.md
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp

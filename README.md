@@ -64,6 +64,8 @@ docker-compose up -d --build
 
 **See [DOCKER_SETUP.md](DOCKER_SETUP.md) for detailed Docker instructions.**
 
+**For AWS EC2 deployment, see [AWS_EC2_DEPLOYMENT.md](AWS_EC2_DEPLOYMENT.md).**
+
 ### Option 2: Manual Setup
 
 ### Prerequisites

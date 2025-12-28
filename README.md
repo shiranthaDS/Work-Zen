@@ -40,6 +40,32 @@ User → Next.js → FastAPI → LLM Intent Detection → MCP Client → stdio �
 
 ## 🚀 Quick Start
 
+### Option 1: Docker (Recommended) 🐳
+
+**Prerequisites**: Docker Desktop installed
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/shiranthaDS/Work-Zen.git
+cd Work-Zen
+
+# 2. Configure environment
+cp .env.example .env
+# Edit .env and add your MongoDB URL and API keys
+
+# 3. Start all services
+docker-compose up -d --build
+
+# 4. Access the application
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:8000
+# API Docs: http://localhost:8000/docs
+```
+
+**See [DOCKER_SETUP.md](DOCKER_SETUP.md) for detailed Docker instructions.**
+
+### Option 2: Manual Setup
+
 ### Prerequisites
 - Node.js 18+ and npm
 - Python 3.9+
@@ -48,8 +74,8 @@ User → Next.js → FastAPI → LLM Intent Detection → MCP Client → stdio �
 ### 1. Clone and Setup
 
 ```bash
-git clone <repository-url>
-cd work-zen
+git clone https://github.com/shiranthaDS/Work-Zen.git
+cd Work-Zen
 ```
 
 ### 2. Backend Setup

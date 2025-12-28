@@ -75,7 +75,9 @@ logs/
 Thumbs.db
 Desktop.ini
 
-# Documentation (keep only README.md and main docs)
+# Documentation (keep only README.md)
+ARCHITECTURE.md
+FOREIGN_KEYS_AND_JOINS.md
 DUAL_LLM_ARCHITECTURE.md
 IMPLEMENTATION_COMPLETE.md
 LLM_DRIVEN_ARCHITECTURE.md

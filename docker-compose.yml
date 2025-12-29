@@ -11,6 +11,7 @@ services:
       - MONGO_DB_NAME=${MONGO_DB_NAME:-ems_database}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
     volumes:
       - ./backend/app:/app/app
     restart: unless-stopped

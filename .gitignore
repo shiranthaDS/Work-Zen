@@ -73,7 +73,7 @@ logs/
 Thumbs.db
 Desktop.ini
 
-# Documentation (keep only README.md)
+# Documentation (keep only README.md and deployment guides)
 ARCHITECTURE.md
 FOREIGN_KEYS_AND_JOINS.md
 DUAL_LLM_ARCHITECTURE.md
@@ -84,6 +84,9 @@ LLM_ONLY_MODE.md
 MCP_LLM_ARCHITECTURE.md
 QUICK_START_LLM.md
 SEARCH_CAPABILITIES.md
+*_NOTES.md
+*_SUMMARY.md
+TROUBLESHOOTING.md
 
 # Temporary files
 tmp/

@@ -1,6 +1,6 @@
 # Employee Management System (EMS)
 
-A comprehensive, full-stack Employee Management System with AI-powered chat interface, built with modern technologies and following the Model Context Protocol (MCP) architecture.
+A comprehensive, production-ready Employee Management System with AI-powered chat interface, built with modern technologies and following the Model Context Protocol (MCP) architecture.
 
 ## 🎯 Features
 
@@ -21,10 +21,15 @@ A comprehensive, full-stack Employee Management System with AI-powered chat inte
 
 ### Database Features
 - **Foreign Key Relationships**: Proper indexes on `employee_id` linking all collections
-- **Optimized Joins**: MongoDB aggregation pipeline with `$lookup` for efficient data retrieval
-- **Dual Join Strategies**: Application-level and database-level joins
+- **Optimized MongoDB Queries**: Efficient aggregation pipelines
 - **62+ Filter Parameters**: Comprehensive filtering across all collections
-- See [FOREIGN_KEYS_AND_JOINS.md](FOREIGN_KEYS_AND_JOINS.md) for details
+
+### Production Ready
+- ✅ **Unified Environment Variables**: Consistent `MONGO_URL` and `MONGO_DB_NAME` across all services
+- ✅ **Error Handling**: Comprehensive error logging with stderr capture
+- ✅ **Health Checks**: Process monitoring and automatic recovery
+- ✅ **Docker Support**: Full containerization with docker-compose
+- ✅ **AWS EC2 Ready**: Complete deployment guide included
 
 ## 🏗️ Architecture
 
@@ -36,7 +41,12 @@ User → Next.js → FastAPI → LLM Intent Detection → MCP Client → stdio �
                    LLM Response Generation ←────────────────────────────────────────┘
 ```
 
-**See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed architecture documentation.**
+### Key Components
+- **Next.js Frontend**: Modern React UI with TypeScript
+- **FastAPI Backend**: High-performance Python REST API
+- **MCP Server**: Node.js server providing MongoDB tools via stdio
+- **Dual LLM System**: Intent detection + response generation
+- **MongoDB Atlas**: Cloud-hosted NoSQL database
 
 ## 🚀 Quick Start
 
@@ -56,10 +66,54 @@ cp .env.example .env
 # 3. Start all services
 docker-compose up -d --build
 
-# 4. Access the application
+# 4. Check container status
+docker-compose ps
+
+# 5. View logs
+docker-compose logs -f              # All containers
+docker-compose logs -f backend      # Backend only
+docker-compose logs -f frontend     # Frontend only
+
+# 6. Access the application
 # Frontend: http://localhost:3000
 # Backend API: http://localhost:8000
 # API Docs: http://localhost:8000/docs
+```
+
+### Common Docker Commands
+
+```bash
+# Start containers
+docker-compose up -d                # Start in background
+docker-compose up                   # Start with logs in foreground
+
+# Stop containers
+docker-compose stop                 # Stop containers
+docker-compose down                 # Stop and remove containers
+
+# Restart containers
+docker-compose restart              # Restart all
+docker-compose restart backend      # Restart backend only
+
+# View logs
+docker-compose logs -f backend      # Follow backend logs
+docker-compose logs --tail=100 backend  # Last 100 lines
+docker-compose logs --since 30m     # Last 30 minutes
+
+# Check container status
+docker-compose ps                   # List all containers
+docker ps                          # List running containers
+
+# Execute commands in container
+docker-compose exec backend bash    # Access backend shell
+docker-compose exec frontend sh     # Access frontend shell
+
+# Rebuild specific service
+docker-compose up -d --build backend
+
+# Clean restart (remove volumes)
+docker-compose down -v
+docker-compose up -d --build
 ```
 
 **See [DOCKER_SETUP.md](DOCKER_SETUP.md) for detailed Docker instructions.**
@@ -68,7 +122,7 @@ docker-compose up -d --build
 
 ### Option 2: Manual Setup
 
-### Prerequisites
+**Prerequisites**
 - Node.js 18+ and npm
 - Python 3.9+
 - MongoDB Atlas account (or local MongoDB)
@@ -91,6 +145,7 @@ pip install -r requirements.txt
 
 Create `backend/.env`:
 ```env
+# MongoDB Configuration
 MONGO_URL=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/
 MONGO_DB_NAME=ems_database
 
@@ -113,6 +168,16 @@ Start backend:
 uvicorn app.main:app --reload --port 8000
 ```
 
+**View Backend Logs:**
+```bash
+# Terminal shows live logs
+# Look for these key messages:
+# - "Connected to MongoDB: ems_database"
+# - "✅ OpenRouter API configured (Primary LLM)"
+# - "🚀 Starting MCP Server"
+# - "✅ MCP Server started successfully"
+```
+
 **Verify LLM Setup:**
 You should see one of these messages:
 - `✅ OpenRouter API configured (Primary LLM)` ← Best option!
@@ -128,7 +193,9 @@ npm install
 
 Create `mcp-server/.env`:
 ```env
-MONGO_URL=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/ems_database
+# MongoDB Configuration (same as backend)
+MONGO_URL=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/
+MONGO_DB_NAME=ems_database
 ```
 
 **Note**: MCP Server is automatically started by the FastAPI backend, no manual start needed.
@@ -140,11 +207,74 @@ cd frontend
 npm install
 ```
 
-Create `frontend/.env.local`:
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
+**View Frontend Logs:**
+```bash
+# Terminal shows live logs
+# Including build output and request logs
 ```
 
+### 5. Access Application
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **API Docs**: http://localhost:8000/docs
+
+### Viewing Server Logs
+
+**Docker Deployment:**
+```bash
+# View all logs
+docker-compose logs -f
+
+# Backend logs only (shows MongoDB, MCP, and LLM messages)
+docker-compose logs -f backend
+
+# Frontend logs only
+docker-compose logs -f frontend
+
+# Last 100 lines
+docker-compose logs --tail=100 backend
+
+# Logs from last 30 minutes
+docker-compose logs --since 30m backend
+
+# Save logs to file
+docker-compose logs backend > backend-logs.txt
+```
+
+**Manual Deployment:**
+```bash
+# Backend logs appear in terminal where uvicorn is running
+# Frontend logs appear in terminal where npm run dev is running
+
+# Redirect logs to file (backend)
+uvicorn app.main:app --reload --port 8000 > backend.log 2>&1 &
+
+# Redirect logs to file (frontend)
+npm run dev > frontend.log 2>&1 &
+
+# View logs
+tail -f backend.log
+tail -f frontend.log
+```
+
+**Key Log Messages to Look For:**
+```
+Backend startup:
+✅ Connected to MongoDB: ems_database
+✅ OpenRouter API configured (Primary LLM)
+🚀 Starting MCP Server from: /app/mcp-server
+🔑 MONGO_URL: mongodb+srv://...
+✅ MCP Server started successfully
+INFO: Application startup complete.
+INFO: Uvicorn running on http://0.0.0.0:8000
+
+MCP Server startup (in backend logs):
+🔌 Connecting to MongoDB...
+✅ Connected to MongoDB database: ems_database
+✅ Database indexes created successfully
+EMS MCP Server running on stdio
+```
 Start frontend:
 ```bash
 npm run dev
@@ -483,9 +613,26 @@ tail -f /tmp/backend.log | grep -E "(MCP|Calling|Received)"
 
 ## 🐛 Troubleshooting
 
+### Docker Issues
+```bash
+# Check container logs
+docker-compose logs -f backend
+docker-compose logs -f frontend
+
+# Restart containers
+docker-compose down
+docker-compose up -d --build
+
+# Clean rebuild
+docker-compose down -v
+docker system prune -af
+docker-compose up -d --build
+```
+
 ### Backend won't start
 - Check Python version: `python3 --version` (should be 3.9+)
-- Check MongoDB connection in `.env`
+- Verify MongoDB connection string in `.env`
+- Check environment variables: `MONGO_URL` and `MONGO_DB_NAME`
 - Check if port 8000 is available: `lsof -i :8000`
 - Kill existing process: `lsof -ti:8000 | xargs kill -9`
 
@@ -496,25 +643,31 @@ tail -f /tmp/backend.log | grep -E "(MCP|Calling|Received)"
 - Kill existing process: `lsof -ti:3000 | xargs kill -9`
 
 ### MCP Server issues
-- Check MCP Server logs in backend terminal
+- Check MCP Server logs in backend terminal (look for "🚀 Starting MCP Server")
 - Verify Node.js is installed: `node --version`
-- Check `mcp-server/.env` configuration
-- Verify `mcp-server/index.js` exists
+- Check environment variables are passed: `MONGO_URL`, `MONGO_DB_NAME`
+- Check backend logs for detailed error messages with stderr output
+- Verify `mcp-server/index.js` exists and dependencies are installed
 
 ### AI Chat not responding
-- **REQUIRED**: Set up at least one LLM API key in `backend/.env`:
+- **REQUIRED**: Set up at least one LLM API key in `.env`:
   - `OPENROUTER_API_KEY` (recommended - free tier available)
   - `HUGGINGFACE_API_KEY` (backup)
 - Get OpenRouter key: [openrouter.ai](https://openrouter.ai/keys)
 - Get HuggingFace key: [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
-- Check backend logs for LLM errors: `tail -f /tmp/backend.log | grep "LLM"`
-- Test MCP Server is running: Check backend startup logs for "MCP Server process started"
-- Without LLM keys, chat will return: "Sorry, I'm having trouble understanding your request"
+- Check backend logs for LLM errors
+- Check for "✅ OpenRouter API configured" or "✅ HuggingFace API configured" message
+- Without LLM keys, you'll see: "⚠️  WARNING: No LLM API keys configured!"
 
-### Database connection issues
-- Verify MongoDB Atlas connection string in `.env` files
-- Check if IP is whitelisted in MongoDB Atlas
-- Test connection: Use MongoDB Compass with the connection string
+### MongoDB Connection Errors
+- **Backend**: Verify `MONGO_URL` and `MONGO_DB_NAME` in backend `.env`
+- **MCP Server**: Verify same variables in mcp-server `.env`
+- Check MongoDB Atlas:
+  - IP whitelist (add `0.0.0.0/0` for testing)
+  - Database user credentials
+  - Network access settings
+- Test connection string with MongoDB Compass
+- Look for "Connected to MongoDB: ems_database" in logs
 
 ## 🔒 Security Notes
 
@@ -526,25 +679,51 @@ tail -f /tmp/backend.log | grep -E "(MCP|Calling|Received)"
 
 ## 📚 Additional Documentation
 
-- [Architecture Documentation](ARCHITECTURE.md) - Detailed system architecture
+- [AWS EC2 Deployment Guide](AWS_EC2_DEPLOYMENT.md) - Deploy to AWS EC2
+- [Docker Setup Guide](DOCKER_SETUP.md) - Detailed Docker instructions
+- [Deployment Quick Start](DEPLOYMENT_QUICK_START.md) - Fast deployment guide
 - [API Documentation](http://localhost:8000/docs) - Interactive API docs (when running)
 
 ## 🚀 Deployment
 
-### Backend (Example with Docker)
-```dockerfile
-FROM python:3.9
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY app/ ./app/
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+### Docker Deployment (Recommended)
+
+See [DOCKER_SETUP.md](DOCKER_SETUP.md) for detailed instructions.
+
+```bash
+# Quick deploy with Docker
+docker-compose up -d --build
 ```
 
-### Frontend (Example with Vercel)
-```bash
-cd frontend
-vercel deploy
+### AWS EC2 Deployment
+
+See [AWS_EC2_DEPLOYMENT.md](AWS_EC2_DEPLOYMENT.md) for step-by-step guide.
+
+Key steps:
+1. Launch EC2 instance (Ubuntu 22.04)
+2. Install Docker and Docker Compose
+3. Configure security groups (ports 3000, 8000, 80, 443)
+4. Clone repository and set up `.env`
+5. Run with Docker Compose
+6. Configure domain and SSL (optional)
+
+### Environment Variables
+
+Ensure these are set in your `.env` file:
+```env
+# MongoDB
+MONGO_URL=mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/
+MONGO_DB_NAME=ems_database
+
+# LLM APIs (at least one required)
+OPENROUTER_API_KEY=sk-or-v1-...
+HUGGINGFACE_API_KEY=hf_...
+
+# Frontend URL (for CORS)
+FRONTEND_URL=http://your-domain.com:3000
+
+# API URL for frontend
+NEXT_PUBLIC_API_URL=http://your-domain.com:8000
 ```
 
 ## 📝 License

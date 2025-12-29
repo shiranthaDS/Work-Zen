@@ -1,6 +1,6 @@
 # Employee Management System (EMS)
 
-A comprehensive, production-ready Employee Management System with AI-powered chat interface, built with modern technologies and following the Model Context Protocol (MCP) architecture.
+A comprehensive, production-ready Employee Management System with AI-powered chat interface, built with modern technologies and following the Model Context Protocol (MCP) architecture...
 
 ## 🎯 Features
 

@@ -11,9 +11,9 @@ const api = axios.create({
 
 // Employee APIs
 export const employeeApi = {
-  list: (params?: any) => api.get('/api/employees', { params }),
+  list: (params?: any) => api.get('/api/employees/', { params }),
   get: (id: string) => api.get(`/api/employees/${id}`),
-  create: (data: any) => api.post('/api/employees', data),
+  create: (data: any) => api.post('/api/employees/', data),
   update: (id: string, data: any) => api.put(`/api/employees/${id}`, data),
   delete: (id: string) => api.delete(`/api/employees/${id}`),
   search: (query: string) => api.get('/api/employees/search/query', { params: { q: query } }),
@@ -21,10 +21,10 @@ export const employeeApi = {
 
 // Job Data APIs
 export const jobDataApi = {
-  list: (params?: any) => api.get('/api/job-data', { params }),
+  list: (params?: any) => api.get('/api/job-data/', { params }),
   get: (id: string) => api.get(`/api/job-data/${id}`),
   getByEmployee: (employeeId: string) => api.get(`/api/job-data/employee/${employeeId}`),
-  create: (data: any) => api.post('/api/job-data', data),
+  create: (data: any) => api.post('/api/job-data/', data),
   update: (id: string, data: any) => api.put(`/api/job-data/${id}`, data),
   delete: (id: string) => api.delete(`/api/job-data/${id}`),
   search: (query: string) => api.get('/api/job-data/search/query', { params: { q: query } }),
@@ -32,9 +32,9 @@ export const jobDataApi = {
 
 // Attendance APIs
 export const attendanceApi = {
-  list: (params?: any) => api.get('/api/attendance', { params }),
+  list: (params?: any) => api.get('/api/attendance/', { params }),
   get: (id: string) => api.get(`/api/attendance/${id}`),
-  create: (data: any) => api.post('/api/attendance', data),
+  create: (data: any) => api.post('/api/attendance/', data),
   update: (id: string, data: any) => api.put(`/api/attendance/${id}`, data),
   delete: (id: string) => api.delete(`/api/attendance/${id}`),
   getSummary: (employeeId: string, month?: number, year?: number) => 
@@ -43,9 +43,9 @@ export const attendanceApi = {
 
 // Leave APIs
 export const leaveApi = {
-  list: (params?: any) => api.get('/api/leaves', { params }),
+  list: (params?: any) => api.get('/api/leaves/', { params }),
   get: (id: string) => api.get(`/api/leaves/${id}`),
-  create: (data: any) => api.post('/api/leaves', data),
+  create: (data: any) => api.post('/api/leaves/', data),
   update: (id: string, data: any) => api.put(`/api/leaves/${id}`, data),
   delete: (id: string) => api.delete(`/api/leaves/${id}`),
   approve: (id: string, approvedBy: string) => 
@@ -56,30 +56,30 @@ export const leaveApi = {
 
 // Leave Balance APIs
 export const leaveBalanceApi = {
-  list: (params?: any) => api.get('/api/leaves/balance', { params }),
+  list: (params?: any) => api.get('/api/leaves/balance/', { params }),
   get: (id: string) => api.get(`/api/leaves/balance/${id}`),
   getByEmployee: (employeeId: string, year?: number) => 
     api.get(`/api/leaves/balance/employee/${employeeId}`, { params: { year } }),
-  create: (data: any) => api.post('/api/leaves/balance', data),
+  create: (data: any) => api.post('/api/leaves/balance/', data),
   update: (id: string, data: any) => api.put(`/api/leaves/balance/${id}`, data),
   delete: (id: string) => api.delete(`/api/leaves/balance/${id}`),
 };
 
 // Salary Structure APIs
 export const salaryStructureApi = {
-  list: (params?: any) => api.get('/api/payroll/salary-structure', { params }),
+  list: (params?: any) => api.get('/api/payroll/salary-structure/', { params }),
   get: (id: string) => api.get(`/api/payroll/salary-structure/${id}`),
   getByEmployee: (employeeId: string) => api.get(`/api/payroll/salary-structure/employee/${employeeId}`),
-  create: (data: any) => api.post('/api/payroll/salary-structure', data),
+  create: (data: any) => api.post('/api/payroll/salary-structure/', data),
   update: (id: string, data: any) => api.put(`/api/payroll/salary-structure/${id}`, data),
   delete: (id: string) => api.delete(`/api/payroll/salary-structure/${id}`),
 };
 
 // Payroll APIs
 export const payrollApi = {
-  list: (params?: any) => api.get('/api/payroll', { params }),
+  list: (params?: any) => api.get('/api/payroll/', { params }),
   get: (id: string) => api.get(`/api/payroll/${id}`),
-  create: (data: any) => api.post('/api/payroll', data),
+  create: (data: any) => api.post('/api/payroll/', data),
   update: (id: string, data: any) => api.put(`/api/payroll/${id}`, data),
   delete: (id: string) => api.delete(`/api/payroll/${id}`),
   getHistory: (employeeId: string) => api.get(`/api/payroll/employee/${employeeId}/history`),

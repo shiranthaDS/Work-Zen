@@ -5,8 +5,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-MONGODB_URI = os.getenv("MONGODB_URI")
-DATABASE_NAME = os.getenv("DATABASE_NAME", "ems_database")
+# Support both MONGO_URL (docker-compose) and MONGODB_URI (legacy) with fallback
+MONGODB_URI = os.getenv("MONGO_URL") or os.getenv("MONGODB_URI") or "mongodb://localhost:27017"
+DATABASE_NAME = os.getenv("MONGO_DB_NAME") or os.getenv("DATABASE_NAME", "ems_database")
 
 class Database:
     client: AsyncIOMotorClient = None

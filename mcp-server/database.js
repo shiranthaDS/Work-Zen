@@ -12,10 +12,16 @@ let db = null;
 
 export async function connectToMongoDB() {
   if (!client) {
+    if (!MONGODB_URI || MONGODB_URI === 'mongodb://localhost:27017') {
+      console.error('⚠️  WARNING: MONGODB_URI not properly configured!');
+      console.error('    MONGO_URL:', process.env.MONGO_URL ? 'SET' : 'NOT SET');
+      console.error('    MONGODB_URI:', process.env.MONGODB_URI ? 'SET' : 'NOT SET');
+    }
+    console.error('🔌 Connecting to MongoDB...');
     client = new MongoClient(MONGODB_URI);
     await client.connect();
     db = client.db(DATABASE_NAME);
-    console.error('Connected to MongoDB');
+    console.error(`✅ Connected to MongoDB database: ${DATABASE_NAME}`);
   }
   return db;
 }

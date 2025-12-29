@@ -22,8 +22,16 @@ const server = new Server(
   }
 );
 
-// Connect to MongoDB
-await connectToMongoDB();
+// Connect to MongoDB with error handling
+try {
+  await connectToMongoDB();
+  console.error('✅ MCP Server connected to MongoDB');
+} catch (error) {
+  console.error('❌ MCP Server failed to connect to MongoDB:', error.message);
+  console.error('MONGO_URL:', process.env.MONGO_URL ? 'SET' : 'NOT SET');
+  console.error('MONGODB_URI:', process.env.MONGODB_URI ? 'SET' : 'NOT SET');
+  process.exit(1);
+}
 
 // Create indexes for foreign key relationships (Primary Key: employee_id)
 async function ensureIndexes() {
@@ -45,9 +53,9 @@ async function ensureIndexes() {
     await db.collection(COLLECTIONS.payroll).createIndex({ employee_id: 1 });
     await db.collection(COLLECTIONS.payroll).createIndex({ payment_date: -1 }); // For date queries
     
-    console.log('✅ Database indexes created successfully (Foreign Key relationships established)');
+    console.error('✅ Database indexes created successfully (Foreign Key relationships established)');
   } catch (error) {
-    console.log('ℹ️ Indexes may already exist:', error.message);
+    console.error('ℹ️ Indexes may already exist:', error.message);
   }
 }
 

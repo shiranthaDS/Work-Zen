@@ -26,6 +26,10 @@ class MCPClient:
             env['MONGODB_URI'] = env['MONGO_URL']
         if not env.get('DATABASE_NAME') and env.get('MONGO_DB_NAME'):
             env['DATABASE_NAME'] = env['MONGO_DB_NAME']
+        
+        print(f"🚀 Starting MCP Server from: {self.mcp_server_path}")
+        print(f"🔑 MONGO_URL: {env.get('MONGO_URL', 'NOT SET')[:50]}...")
+        print(f"🔑 MONGO_DB_NAME: {env.get('MONGO_DB_NAME', 'NOT SET')}")
             
         # Start the MCP server process
         self.process = await asyncio.create_subprocess_exec(
@@ -38,8 +42,20 @@ class MCPClient:
             env=env
         )
         
-        # Wait for initialization
-        await asyncio.sleep(1)
+        # Wait for initialization and check if process is still running
+        await asyncio.sleep(2)
+        
+        if self.process.returncode is not None:
+            # Process died during startup
+            stderr_output = await self.process.stderr.read()
+            stdout_output = await self.process.stdout.read()
+            raise Exception(
+                f"MCP Server failed to start. Exit code: {self.process.returncode}\n"
+                f"stderr: {stderr_output.decode()}\n"
+                f"stdout: {stdout_output.decode()}"
+            )
+        
+        print("✅ MCP Server started successfully")
         
     async def stop(self):
         """Stop the MCP Server process"""
@@ -56,6 +72,12 @@ class MCPClient:
         """Call an MCP tool and get the result"""
         if not self.process:
             await self.start()
+        
+        # Check if process is still running
+        if self.process.returncode is not None:
+            # Process has died, try to get stderr
+            stderr_output = await self.process.stderr.read()
+            raise Exception(f"MCP Server process died. stderr: {stderr_output.decode()}")
             
         # Create the JSON-RPC request
         request = {
@@ -73,16 +95,37 @@ class MCPClient:
         self.process.stdin.write(request_json.encode())
         await self.process.stdin.drain()
         
-        # Read response
-        response_line = await asyncio.wait_for(
-            self.process.stdout.readline(),
-            timeout=10.0
-        )
+        # Read response with better error handling
+        try:
+            response_line = await asyncio.wait_for(
+                self.process.stdout.readline(),
+                timeout=10.0
+            )
+        except asyncio.TimeoutError:
+            # Try to read stderr for error info
+            stderr_data = await asyncio.wait_for(
+                self.process.stderr.read(1024),
+                timeout=1.0
+            ) if self.process.stderr else b""
+            raise Exception(f"MCP Server timeout. stderr: {stderr_data.decode()}")
         
         if not response_line:
-            raise Exception("No response from MCP server")
-            
-        response = json.loads(response_line.decode())
+            # Try to read stderr for error info
+            stderr_data = await self.process.stderr.read(1024) if self.process.stderr else b""
+            raise Exception(f"No response from MCP server. stderr: {stderr_data.decode()}")
+        
+        # Decode and parse response
+        response_text = response_line.decode().strip()
+        if not response_text:
+            stderr_data = await self.process.stderr.read(1024) if self.process.stderr else b""
+            raise Exception(f"Empty response from MCP server. stderr: {stderr_data.decode()}")
+        
+        try:
+            response = json.loads(response_text)
+        except json.JSONDecodeError as e:
+            # If JSON parse fails, read stderr for more context
+            stderr_data = await self.process.stderr.read(1024) if self.process.stderr else b""
+            raise Exception(f"Invalid JSON from MCP server: {response_text[:100]}... stderr: {stderr_data.decode()}")
         
         if "error" in response:
             raise Exception(f"MCP Error: {response['error']}")

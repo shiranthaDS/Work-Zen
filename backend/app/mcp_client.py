@@ -18,6 +18,14 @@ class MCPClient:
         """Start the MCP Server process"""
         if self.process:
             return
+        
+        # Prepare environment variables for MCP server
+        env = os.environ.copy()
+        # Ensure MongoDB connection variables are available
+        if not env.get('MONGODB_URI') and env.get('MONGO_URL'):
+            env['MONGODB_URI'] = env['MONGO_URL']
+        if not env.get('DATABASE_NAME') and env.get('MONGO_DB_NAME'):
+            env['DATABASE_NAME'] = env['MONGO_DB_NAME']
             
         # Start the MCP server process
         self.process = await asyncio.create_subprocess_exec(
@@ -26,7 +34,8 @@ class MCPClient:
             cwd=self.mcp_server_path,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            stderr=asyncio.subprocess.PIPE,
+            env=env
         )
         
         # Wait for initialization

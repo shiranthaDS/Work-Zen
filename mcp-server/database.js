@@ -3,8 +3,9 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const MONGODB_URI = process.env.MONGODB_URI;
-const DATABASE_NAME = process.env.DATABASE_NAME || 'ems_database';
+// Support both MONGO_URL (docker-compose) and MONGODB_URI (legacy) with fallback
+const MONGODB_URI = process.env.MONGO_URL || process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const DATABASE_NAME = process.env.MONGO_DB_NAME || process.env.DATABASE_NAME || 'ems_database';
 
 let client = null;
 let db = null;

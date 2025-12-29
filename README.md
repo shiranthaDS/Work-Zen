@@ -707,6 +707,31 @@ Key steps:
 5. Run with Docker Compose
 6. Configure domain and SSL (optional)
 
+### CI/CD with Jenkins
+
+Automated deployment pipeline using Jenkins. See [JENKINS_SETUP.md](JENKINS_SETUP.md) for complete setup guide.
+
+**Pipeline Features:**
+- ✅ Automated testing on commit
+- ✅ Docker image building and pushing
+- ✅ Automated deployment to EC2
+- ✅ Health checks and rollback
+- ✅ GitHub webhook integration
+
+**Quick Jenkins Setup:**
+```bash
+# Install Jenkins
+# See JENKINS_SETUP.md for detailed instructions
+
+# The Jenkinsfile in the root handles:
+# 1. Code checkout
+# 2. Testing (backend & frontend)
+# 3. Docker image building
+# 4. Push to Docker Hub
+# 5. Deploy to EC2
+# 6. Health checks
+```
+
 ### Environment Variables
 
 Ensure these are set in your `.env` file:

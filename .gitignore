@@ -88,6 +88,11 @@ SEARCH_CAPABILITIES.md
 *_SUMMARY.md
 TROUBLESHOOTING.md
 
+# Deployment guides (keep only in local, not on GitHub)
+AWS_EC2_DEPLOYMENT.md
+DOCKER_SETUP.md
+DEPLOYMENT_QUICK_START.md
+
 # Temporary files
 tmp/
 temp/

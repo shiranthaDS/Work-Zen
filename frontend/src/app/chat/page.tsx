@@ -209,11 +209,11 @@ Once the backend is running, I'll be able to help you query employee data!`,
                 <div
                   className={`rounded-2xl p-4 shadow-md transition-all hover:shadow-lg ${
                     message.role === 'user'
-                      ? 'bg-gradient-to-br from-primary to-primary-700 text-white'
+                      ? 'bg-gradient-to-br from-blue-50 to-blue-100 text-gray-900 border border-blue-200'
                       : 'bg-white text-gray-800 border border-gray-200'
                   }`}
                 >
-                  <div className={`whitespace-pre-wrap text-sm leading-relaxed font-medium ${message.role === 'user' ? 'text-white' : ''}`}>
+                  <div className={`whitespace-pre-wrap text-sm leading-relaxed font-semibold ${message.role === 'user' ? 'text-gray-900' : ''}`}>
                     {message.content.split('\n').map((line, i) => (
                       <span key={i}>
                         {line.includes('**') ? (
@@ -234,8 +234,8 @@ Once the backend is running, I'll be able to help you query employee data!`,
                       </span>
                     ))}
                   </div>
-                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-opacity-20" style={{borderColor: message.role === 'user' ? 'white' : '#e5e7eb'}}>
-                    <p className={`text-xs font-medium ${message.role === 'user' ? 'text-white' : 'text-gray-400'}`}>
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-opacity-20" style={{borderColor: message.role === 'user' ? '#93c5fd' : '#e5e7eb'}}>
+                    <p className={`text-xs font-medium ${message.role === 'user' ? 'text-gray-600' : 'text-gray-400'}`}>
                       {formatTime(message.timestamp)}
                     </p>
                     {message.role === 'assistant' && (

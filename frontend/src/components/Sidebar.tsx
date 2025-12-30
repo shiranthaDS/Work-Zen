@@ -109,18 +109,18 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside className={`
-        fixed top-0 left-0 h-full w-64 bg-white shadow-xl z-40 transform transition-transform duration-300
+        fixed top-0 left-0 h-full w-64 bg-gray-900 shadow-xl z-40 transform transition-transform duration-300
         lg:translate-x-0
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="p-6 border-b">
+        <div className="p-6 border-b border-gray-800">
           <Link href="/" className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
               <FiUsers className="text-white" size={20} />
             </div>
             <div>
-              <h1 className="font-bold text-xl text-gray-800">WorkZen</h1>
-              <p className="text-xs text-gray-500">Employee Management</p>
+              <h1 className="font-bold text-xl text-white">WorkZen</h1>
+              <p className="text-xs text-gray-400">Employee Management</p>
             </div>
           </Link>
         </div>
@@ -132,7 +132,7 @@ export default function Sidebar() {
                 <>
                   <button
                     onClick={() => toggleSubmenu(item.name)}
-                    className={`w-full sidebar-item ${isActive(item.href) ? 'sidebar-item-active' : ''}`}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.href) ? 'bg-primary-600 text-white font-medium' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
                   >
                     <item.icon size={20} />
                     <span className="flex-1 text-left">{item.name}</span>
@@ -151,8 +151,8 @@ export default function Sidebar() {
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={`block px-4 py-2 rounded-lg text-sm transition-colors
                             ${pathname === subItem.href 
-                              ? 'bg-primary-100 text-primary-700 font-medium' 
-                              : 'text-gray-600 hover:bg-gray-100'
+                              ? 'bg-primary-600 text-white font-medium' 
+                              : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                             }`}
                         >
                           {subItem.name}
@@ -165,7 +165,7 @@ export default function Sidebar() {
                 <Link
                   href={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`sidebar-item ${isActive(item.href) ? 'sidebar-item-active' : ''}`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.href) ? 'bg-primary-600 text-white font-medium' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
                 >
                   <item.icon size={20} />
                   <span>{item.name}</span>

@@ -104,10 +104,11 @@ EOF
         
         stage('Push to Registry') {
             when {
-                branch 'main'
+                expression { env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main' || env.BRANCH_NAME == 'main' }
             }
             steps {
                 echo '📤 Pushing Docker images to registry...'
+                echo "Current branch: ${env.GIT_BRANCH} / ${env.BRANCH_NAME}"
                 script {
                     withDockerRegistry([credentialsId: "${DOCKER_CREDENTIALS_ID}", url: "https://${DOCKER_REGISTRY}"]) {
                         sh """
@@ -123,7 +124,7 @@ EOF
         
         stage('Deploy to EC2') {
             when {
-                branch 'main'
+                expression { env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main' || env.BRANCH_NAME == 'main' }
             }
             steps {
                 echo '🚀 Deploying to EC2 instance...'
@@ -168,7 +169,7 @@ ENDSSH
         
         stage('Health Check') {
             when {
-                branch 'main'
+                expression { env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main' || env.BRANCH_NAME == 'main' }
             }
             steps {
                 echo '🏥 Performing health check...'

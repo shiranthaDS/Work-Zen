@@ -141,24 +141,27 @@ cd ${DEPLOY_PATH}
 git pull origin main
 
 # Stop and remove old containers
-docker-compose down --remove-orphans
+echo "=== Removing old containers ==="
+docker-compose down
 
-# Aggressively remove all cached images and layers
-docker rmi -f $(docker images -q shiranthads/work-zen-frontend) 2>/dev/null || true
-docker rmi -f $(docker images -q shiranthads/work-zen-backend) 2>/dev/null || true
-docker system prune -af --volumes
+# Remove cached images to force fresh pull
+echo "=== Removing cached images ==="
+docker rmi shiranthads/work-zen-frontend:latest shiranthads/work-zen-backend:latest 2>/dev/null || true
 
-# Pull latest Docker images with no cache
-docker-compose pull --no-parallel
-
-# Verify we have the latest images
-docker images | grep work-zen
+# Pull latest Docker images from Docker Hub
+echo "=== Pulling fresh images from Docker Hub ==="
+docker-compose pull
 
 # Start new containers
-docker-compose up -d --force-recreate
+echo "=== Starting containers ==="
+docker-compose up -d
+
+# Wait for containers to start
+sleep 5
 
 # Show status
-docker-compose ps
+echo "=== New container status ==="
+docker-compose ps --format 'table {{.Name}}\t{{.Image}}\t{{.Status}}'
 
 echo "✅ Deployment completed successfully!"
 ENDSSH

@@ -94,9 +94,13 @@ EOF
                         docker build -f backend/Dockerfile -t ${DOCKER_IMAGE_BACKEND}:${env.BUILD_NUMBER} -t ${DOCKER_IMAGE_BACKEND}:latest .
                     """
                     
-                    // Build frontend image
+                    // Build frontend image with API URL
                     sh """
-                        docker build -f frontend/Dockerfile -t ${DOCKER_IMAGE_FRONTEND}:${env.BUILD_NUMBER} -t ${DOCKER_IMAGE_FRONTEND}:latest ./frontend
+                        docker build -f frontend/Dockerfile \
+                          --build-arg NEXT_PUBLIC_API_URL=http://${EC2_HOST}:8000 \
+                          -t ${DOCKER_IMAGE_FRONTEND}:${env.BUILD_NUMBER} \
+                          -t ${DOCKER_IMAGE_FRONTEND}:latest \
+                          ./frontend
                     """
                 }
             }

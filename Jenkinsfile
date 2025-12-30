@@ -151,13 +151,16 @@ docker-compose down
 echo "=== Removing cached images ==="
 docker rmi shiranthads/work-zen-frontend:latest shiranthads/work-zen-backend:latest 2>/dev/null || true
 
-# Pull latest Docker images from Docker Hub
+# Pull latest Docker images from Docker Hub with retry logic
 echo "=== Pulling fresh images from Docker Hub ==="
-docker-compose pull
+for i in {1..5}; do
+    docker-compose pull && break || echo "Retrying pull ($i/5)..."
+    sleep 10
+done
 
-# Start new containers
+# Start new containers with --pull flag to ensure latest images
 echo "=== Starting containers ==="
-docker-compose up -d
+docker-compose up -d --pull always
 
 # Wait for containers to start
 sleep 5

@@ -150,11 +150,14 @@ cd ${DEPLOY_PATH}
 # Pull latest code
 git pull origin main
 
-# Pull latest Docker images
-docker-compose pull
-
 # Stop and remove old containers
 docker-compose down
+
+# Remove cached images to force fresh pull
+docker rmi shiranthads/work-zen-frontend:latest shiranthads/work-zen-backend:latest 2>/dev/null || true
+
+# Pull latest Docker images
+docker-compose pull
 
 # Start new containers
 docker-compose up -d

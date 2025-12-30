@@ -131,16 +131,16 @@ EOF
             steps {
                 echo '🚀 Deploying to EC2 instance...'
                 script {
-                    sshagent([EC2_CREDENTIALS_ID]) {
-                        sh """
+                    withCredentials([sshUserPrivateKey(credentialsId: EC2_CREDENTIALS_ID, keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
+                        sh '''
                             # Copy .env file to EC2
-                            scp -o StrictHostKeyChecking=no .env ${EC2_USER}@${EC2_HOST}:${DEPLOY_PATH}/.env
+                            scp -i $SSH_KEY -o StrictHostKeyChecking=no .env ${EC2_USER}@${EC2_HOST}:${DEPLOY_PATH}/.env
                             
                             # Copy docker-compose.yml to EC2
-                            scp -o StrictHostKeyChecking=no docker-compose.yml ${EC2_USER}@${EC2_HOST}:${DEPLOY_PATH}/docker-compose.yml
+                            scp -i $SSH_KEY -o StrictHostKeyChecking=no docker-compose.yml ${EC2_USER}@${EC2_HOST}:${DEPLOY_PATH}/docker-compose.yml
                             
                             # SSH into EC2 and deploy
-                            ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'ENDSSH'
+                            ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'ENDSSH'
 cd ${DEPLOY_PATH}
 
 # Pull latest code
@@ -153,7 +153,7 @@ docker-compose pull
 docker-compose down
 
 # Start new containers
-docker-compose up -d --build
+docker-compose up -d
 
 # Clean up old images
 docker image prune -af
@@ -163,7 +163,7 @@ docker-compose ps
 
 echo "✅ Deployment completed successfully!"
 ENDSSH
-                        """
+                        '''
                     }
                 }
             }

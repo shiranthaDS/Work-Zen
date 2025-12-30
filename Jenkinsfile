@@ -110,13 +110,15 @@ EOF
                 echo '📤 Pushing Docker images to registry...'
                 echo "Current branch: ${env.GIT_BRANCH} / ${env.BRANCH_NAME}"
                 script {
-                    withDockerRegistry([credentialsId: "${DOCKER_CREDENTIALS_ID}", url: "https://${DOCKER_REGISTRY}"]) {
-                        sh """
-                            docker push ${DOCKER_IMAGE_BACKEND}:${env.BUILD_NUMBER}
+                    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh '''
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                            docker push ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
                             docker push ${DOCKER_IMAGE_BACKEND}:latest
-                            docker push ${DOCKER_IMAGE_FRONTEND}:${env.BUILD_NUMBER}
+                            docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
                             docker push ${DOCKER_IMAGE_FRONTEND}:latest
-                        """
+                            docker logout
+                        '''
                     }
                 }
             }

@@ -4,8 +4,8 @@ pipeline {
     environment {
         // Docker registry (DockerHub)
         DOCKER_REGISTRY = 'docker.io'
-        DOCKER_IMAGE_BACKEND = 'shiranthadw/work-zen-backend'
-        DOCKER_IMAGE_FRONTEND = 'shiranthadw/work-zen-frontend'
+        DOCKER_IMAGE_BACKEND = 'shiranthads/work-zen-backend'
+        DOCKER_IMAGE_FRONTEND = 'shiranthads/work-zen-frontend'
         
         // Credentials
         DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'

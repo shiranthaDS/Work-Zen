@@ -151,19 +151,21 @@ cd ${DEPLOY_PATH}
 git pull origin main
 
 # Stop and remove old containers
-docker-compose down
+docker-compose down --remove-orphans
 
-# Remove cached images to force fresh pull
-docker rmi shiranthads/work-zen-frontend:latest shiranthads/work-zen-backend:latest 2>/dev/null || true
+# Aggressively remove all cached images and layers
+docker rmi -f $(docker images -q shiranthads/work-zen-frontend) 2>/dev/null || true
+docker rmi -f $(docker images -q shiranthads/work-zen-backend) 2>/dev/null || true
+docker system prune -af --volumes
 
-# Pull latest Docker images
-docker-compose pull
+# Pull latest Docker images with no cache
+docker-compose pull --no-parallel
+
+# Verify we have the latest images
+docker images | grep work-zen
 
 # Start new containers
-docker-compose up -d
-
-# Clean up old images
-docker image prune -af
+docker-compose up -d --force-recreate
 
 # Show status
 docker-compose ps

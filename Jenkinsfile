@@ -104,7 +104,7 @@ EOF
         
         stage('Push to Registry') {
             when {
-                expression { env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main' || env.BRANCH_NAME == 'main' }
+                branch 'main'
             }
             steps {
                 echo '📤 Pushing Docker images to registry...'
@@ -123,7 +123,7 @@ EOF
         
         stage('Deploy to EC2') {
             when {
-                expression { env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main' || env.BRANCH_NAME == 'main' }
+                branch 'main'
             }
             steps {
                 echo '🚀 Deploying to EC2 instance...'

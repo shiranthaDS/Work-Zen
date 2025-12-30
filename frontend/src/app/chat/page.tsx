@@ -189,7 +189,7 @@ Once the backend is running, I'll be able to help you query employee data!`,
                     : 'bg-gray-100 text-gray-800'
                 }`}
               >
-                <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                <div className="whitespace-pre-wrap text-sm leading-relaxed font-medium">
                   {message.content.split('\n').map((line, i) => (
                     <span key={i}>
                       {line.includes('**') ? (
@@ -205,7 +205,7 @@ Once the backend is running, I'll be able to help you query employee data!`,
                     </span>
                   ))}
                 </div>
-                <p className={`text-xs mt-2 ${message.role === 'user' ? 'text-blue-100' : 'text-gray-400'}`}>
+                <p className={`text-xs mt-2 ${message.role === 'user' ? 'text-white/90' : 'text-gray-400'}`}>
                   {formatTime(message.timestamp)}
                 </p>
               </div>

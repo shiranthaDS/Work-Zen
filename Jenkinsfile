@@ -112,6 +112,9 @@ EOF
                             docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
                             docker push ${DOCKER_IMAGE_FRONTEND}:latest
                             docker logout
+                            
+                            echo "⏳ Waiting 30 seconds for Docker Hub to process images..."
+                            sleep 30
                         '''
                     }
                 }

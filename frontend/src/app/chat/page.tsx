@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { FiSend, FiUser, FiCpu, FiLoader, FiTrash2, FiInfo } from 'react-icons/fi';
+import { FiSend, FiUser, FiCpu, FiLoader, FiTrash2, FiInfo, FiCopy, FiCheck } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 interface Message {
@@ -33,7 +33,9 @@ Just ask me anything about your employees! For example:
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,6 +44,19 @@ Just ask me anything about your employees! For example:
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    // Focus input field on mount
+    inputRef.current?.focus();
+  }, []);
+
+  const copyToClipboard = (text: string, messageId: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedId(messageId);
+      toast.success('Copied to clipboard!');
+      setTimeout(() => setCopiedId(null), 2000);
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,14 +160,22 @@ Once the backend is running, I'll be able to help you query employee data!`,
   return (
     <div className="h-[calc(100vh-120px)] flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">AI Assistant</h1>
-          <p className="text-gray-500">Ask questions about your employee data</p>
+      <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary-700 rounded-xl flex items-center justify-center shadow-lg">
+            <FiCpu className="text-white" size={24} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              AI Assistant
+              <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded-full">Online</span>
+            </h1>
+            <p className="text-sm text-gray-500">Powered by HuggingFace & MCP</p>
+          </div>
         </div>
         <button
           onClick={clearChat}
-          className="btn-secondary inline-flex items-center gap-2"
+          className="btn-secondary inline-flex items-center gap-2 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all"
         >
           <FiTrash2 size={18} />
           Clear Chat
@@ -160,72 +183,99 @@ Once the backend is running, I'll be able to help you query employee data!`,
       </div>
 
       {/* Info Banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-start gap-3">
-        <FiInfo className="text-blue-500 mt-0.5 flex-shrink-0" size={20} />
-        <div className="text-sm text-blue-700">
-          <strong>Architecture:</strong> Your queries flow through Next.js → HuggingFace LLM → MCP Server → MongoDB, 
-          returning beautifully formatted responses with real employee data.
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mb-4 flex items-start gap-3 shadow-sm">
+        <FiInfo className="text-blue-600 mt-0.5 flex-shrink-0" size={20} />
+        <div className="text-sm text-blue-800">
+          <strong className="text-blue-900">Real-time Employee Intelligence:</strong> Ask anything about employees, attendance, leaves, or payroll. 
+          Your queries are processed through advanced AI to deliver instant, accurate insights from your database.
         </div>
       </div>
 
       {/* Chat Container */}
-      <div className="flex-1 card flex flex-col overflow-hidden">
+      <div className="flex-1 card flex flex-col overflow-hidden shadow-lg border border-gray-200">
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-gray-50 to-white">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
             >
               {message.role === 'assistant' && (
-                <div className="flex-shrink-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <FiCpu className="text-white" size={16} />
+                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-primary to-primary-700 rounded-full flex items-center justify-center shadow-md ring-2 ring-white">
+                  <FiCpu className="text-white" size={18} />
                 </div>
               )}
-              <div
-                className={`max-w-[70%] rounded-2xl p-4 ${
-                  message.role === 'user'
-                    ? 'bg-primary text-white'
-                    : 'bg-gray-100 text-gray-800'
-                }`}
-              >
-                <div className="whitespace-pre-wrap text-sm leading-relaxed font-medium">
-                  {message.content.split('\n').map((line, i) => (
-                    <span key={i}>
-                      {line.includes('**') ? (
-                        <span dangerouslySetInnerHTML={{ 
-                          __html: line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
-                        }} />
-                      ) : line.includes('```') ? (
-                        <code className="bg-gray-200 px-1 rounded text-xs">{line.replace(/```/g, '')}</code>
-                      ) : (
-                        line
-                      )}
-                      {i < message.content.split('\n').length - 1 && <br />}
-                    </span>
-                  ))}
+              <div className="flex flex-col gap-1 max-w-[75%]">
+                <div
+                  className={`rounded-2xl p-4 shadow-md transition-all hover:shadow-lg ${
+                    message.role === 'user'
+                      ? 'bg-gradient-to-br from-primary to-primary-700 text-white'
+                      : 'bg-white text-gray-800 border border-gray-200'
+                  }`}
+                >
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                    {message.content.split('\n').map((line, i) => (
+                      <span key={i}>
+                        {line.includes('**') ? (
+                          <span dangerouslySetInnerHTML={{ 
+                            __html: line.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>') 
+                          }} />
+                        ) : line.includes('```') ? (
+                          <code className="bg-gray-800 text-green-400 px-2 py-1 rounded text-xs font-mono block my-1">{line.replace(/```/g, '')}</code>
+                        ) : line.startsWith('•') || line.startsWith('-') ? (
+                          <span className="flex items-start gap-2 my-1">
+                            <span className="text-primary mt-1">●</span>
+                            <span>{line.replace(/^[•\-]\s*/, '')}</span>
+                          </span>
+                        ) : (
+                          line
+                        )}
+                        {i < message.content.split('\n').length - 1 && !line.startsWith('•') && !line.startsWith('-') && <br />}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-opacity-20" style={{borderColor: message.role === 'user' ? 'white' : '#e5e7eb'}}>
+                    <p className={`text-xs ${message.role === 'user' ? 'text-white/80' : 'text-gray-400'}`}>
+                      {formatTime(message.timestamp)}
+                    </p>
+                    {message.role === 'assistant' && (
+                      <button
+                        onClick={() => copyToClipboard(message.content, message.id)}
+                        className="text-gray-400 hover:text-primary transition-colors p-1 rounded hover:bg-gray-100"
+                        title="Copy message"
+                      >
+                        {copiedId === message.id ? (
+                          <FiCheck size={14} className="text-green-500" />
+                        ) : (
+                          <FiCopy size={14} />
+                        )}
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <p className={`text-xs mt-2 ${message.role === 'user' ? 'text-white/90' : 'text-gray-400'}`}>
-                  {formatTime(message.timestamp)}
-                </p>
               </div>
               {message.role === 'user' && (
-                <div className="flex-shrink-0 w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
-                  <FiUser className="text-white" size={16} />
+                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center shadow-md ring-2 ring-white">
+                  <FiUser className="text-white" size={18} />
                 </div>
               )}
             </div>
           ))}
           
           {loading && (
-            <div className="flex gap-3 justify-start">
-              <div className="flex-shrink-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <FiCpu className="text-white" size={16} />
+            <div className="flex gap-3 justify-start animate-fadeIn">
+              <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-primary to-primary-700 rounded-full flex items-center justify-center shadow-md ring-2 ring-white">
+                <FiCpu className="text-white" size={18} />
               </div>
-              <div className="bg-gray-100 rounded-2xl p-4">
-                <div className="flex items-center gap-2 text-gray-500">
-                  <FiLoader className="animate-spin" size={16} />
-                  <span className="text-sm">Thinking...</span>
+              <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-md">
+                <div className="flex items-center gap-3 text-gray-600">
+                  <FiLoader className="animate-spin" size={18} />
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0ms'}}></span>
+                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '150ms'}}></span>
+                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '300ms'}}></span>
+                  </div>
+                  <span className="text-sm font-medium">AI is thinking...</span>
                 </div>
               </div>
             </div>
@@ -235,14 +285,17 @@ Once the backend is running, I'll be able to help you query employee data!`,
 
         {/* Suggested Queries */}
         {messages.length <= 1 && (
-          <div className="border-t border-gray-200 p-4">
-            <p className="text-xs text-gray-500 mb-2">Suggested queries:</p>
+          <div className="border-t border-gray-200 bg-gray-50 p-4">
+            <p className="text-xs font-semibold text-gray-600 mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+              Try these quick queries:
+            </p>
             <div className="flex flex-wrap gap-2">
               {suggestedQueries.map((query, index) => (
                 <button
                   key={index}
                   onClick={() => setInput(query)}
-                  className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full transition-colors"
+                  className="text-xs bg-white hover:bg-primary hover:text-white text-gray-700 px-4 py-2 rounded-full transition-all shadow-sm hover:shadow-md border border-gray-200 hover:border-primary font-medium"
                 >
                   {query}
                 </button>
@@ -252,28 +305,35 @@ Once the backend is running, I'll be able to help you query employee data!`,
         )}
 
         {/* Input Form */}
-        <form onSubmit={handleSubmit} className="border-t border-gray-200 p-4">
+        <form onSubmit={handleSubmit} className="border-t border-gray-200 p-4 bg-white">
           <div className="flex gap-3">
             <input
+              ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about employees, attendance, leaves, or payroll..."
-              className="flex-1 input-field"
+              className="flex-1 input-field shadow-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all"
               disabled={loading}
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="btn-primary px-6 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary px-8 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all transform hover:scale-105 active:scale-95"
             >
               {loading ? (
                 <FiLoader className="animate-spin" size={20} />
               ) : (
-                <FiSend size={20} />
+                <div className="flex items-center gap-2">
+                  <FiSend size={20} />
+                  <span className="font-medium">Send</span>
+                </div>
               )}
             </button>
           </div>
+          <p className="text-xs text-gray-400 mt-2 text-center">
+            Press <kbd className="px-2 py-0.5 bg-gray-100 border border-gray-300 rounded text-gray-600 font-mono">Enter</kbd> to send
+          </p>
         </form>
       </div>
     </div>

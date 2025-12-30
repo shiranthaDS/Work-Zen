@@ -213,7 +213,7 @@ Once the backend is running, I'll be able to help you query employee data!`,
                       : 'bg-white text-gray-800 border border-gray-200'
                   }`}
                 >
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                  <div className={`whitespace-pre-wrap text-sm leading-relaxed font-medium ${message.role === 'user' ? 'text-white' : ''}`}>
                     {message.content.split('\n').map((line, i) => (
                       <span key={i}>
                         {line.includes('**') ? (
@@ -235,7 +235,7 @@ Once the backend is running, I'll be able to help you query employee data!`,
                     ))}
                   </div>
                   <div className="flex items-center justify-between mt-2 pt-2 border-t border-opacity-20" style={{borderColor: message.role === 'user' ? 'white' : '#e5e7eb'}}>
-                    <p className={`text-xs ${message.role === 'user' ? 'text-white/80' : 'text-gray-400'}`}>
+                    <p className={`text-xs font-medium ${message.role === 'user' ? 'text-white' : 'text-gray-400'}`}>
                       {formatTime(message.timestamp)}
                     </p>
                     {message.role === 'assistant' && (

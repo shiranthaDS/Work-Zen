@@ -1,8 +1,6 @@
 services:
   backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+    image: shiranthads/work-zen-backend:latest
     container_name: ems-backend
     ports:
       - "8000:8000"
@@ -12,18 +10,12 @@ services:
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
-    volumes:
-      - ./backend/app:/app/app
     restart: unless-stopped
     networks:
       - ems-network
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    image: shiranthads/work-zen-frontend:latest
     container_name: ems-frontend
     ports:
       - "3000:3000"

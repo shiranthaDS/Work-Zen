@@ -55,16 +55,10 @@ EOF
         
         stage('Lint & Test Backend') {
             steps {
-                echo '🧪 Running backend tests...'
+                echo '🧪 Skipping backend tests (no tests configured)...'
                 script {
                     sh '''
-                        cd backend
-                        python3 -m venv venv
-                        . venv/bin/activate
-                        pip install -r requirements.txt
-                        # Add your test commands here
-                        # python -m pytest tests/ || true
-                        echo "Backend tests passed"
+                        echo "Backend stage skipped - tests will be added later"
                     '''
                 }
             }
@@ -72,14 +66,10 @@ EOF
         
         stage('Lint & Test Frontend') {
             steps {
-                echo '🧪 Running frontend tests...'
+                echo '🧪 Skipping frontend tests (no tests configured)...'
                 script {
                     sh '''
-                        cd frontend
-                        npm ci
-                        # npm run lint || true
-                        # npm run test || true
-                        echo "Frontend tests passed"
+                        echo "Frontend stage skipped - tests will be added later"
                     '''
                 }
             }

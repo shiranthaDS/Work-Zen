@@ -108,41 +108,46 @@ EOF
             }
         }
         
-        stage('Deploy to EC2') {
-            when {
-                expression { env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main' || env.BRANCH_NAME == 'main' }
-            }
-            steps {
-                echo '🚀 Deploying to EC2 instance...'
-                script {
-                    withCredentials([sshUserPrivateKey(credentialsId: EC2_CREDENTIALS_ID, keyFileVariable: 'SSH_KEY')]) {
-                        sh '''
-                            scp -i $SSH_KEY -o StrictHostKeyChecking=no .env ${EC2_USER}@${EC2_HOST}:${DEPLOY_PATH}/.env
-                            scp -i $SSH_KEY -o StrictHostKeyChecking=no docker-compose.yml ${EC2_USER}@${EC2_HOST}:${DEPLOY_PATH}/docker-compose.yml
+   stage('Deploy to EC2') {
+    when {
+        expression { env.GIT_BRANCH == 'origin/main' || env.GIT_BRANCH == 'main' || env.BRANCH_NAME == 'main' }
+    }
+    steps {
+        echo '🚀 Deploying to EC2 instance...'
+        script {
+            withCredentials([sshUserPrivateKey(credentialsId: EC2_CREDENTIALS_ID, keyFileVariable: 'SSH_KEY')]) {
+                sh """
+                    scp -i $SSH_KEY -o StrictHostKeyChecking=no .env ${EC2_USER}@${EC2_HOST}:${DEPLOY_PATH}/.env
+                    scp -i $SSH_KEY -o StrictHostKeyChecking=no docker-compose.yml ${EC2_USER}@${EC2_HOST}:${DEPLOY_PATH}/docker-compose.yml
 
-                            ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'ENDSSH'
-cd ${DEPLOY_PATH}
+                    ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << ENDSSH
+                    cd ${DEPLOY_PATH}
 
-git pull origin main
+                    echo "Current directory:"
+                    pwd
+                    ls -la
 
-echo "=== Stopping old containers ==="
-docker-compose down
+                    git pull origin main
 
-echo "=== Pulling exact build images ==="
-export IMAGE_TAG=${BUILD_NUMBER}   # ✅ UPDATED (KEY FIX)
-docker-compose pull
+                    echo "=== Stopping old containers ==="
+                    docker-compose down
 
-echo "=== Starting containers ==="
-docker-compose up -d
+                    echo "=== Pulling exact build images ==="
+                    export IMAGE_TAG=${BUILD_NUMBER}
+                    docker-compose pull
 
-echo "=== Running containers ==="
-docker-compose ps
+                    echo "=== Starting containers ==="
+                    docker-compose up -d
+
+                    echo "=== Running containers ==="
+                    docker-compose ps
 ENDSSH
-                        '''
-                    }
-                }
+                """
             }
         }
+    }
+}
+
         
         stage('Health Check') {
             when {

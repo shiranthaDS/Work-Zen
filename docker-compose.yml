@@ -1,6 +1,6 @@
 services:
   backend:
-    image: shiranthads/work-zen-backend:latest
+    image: shiranthads/work-zen-backend:${IMAGE_TAG}   # ✅ UPDATED
     container_name: ems-backend
     ports:
       - "8000:8000"
@@ -15,7 +15,7 @@ services:
       - ems-network
 
   frontend:
-    image: shiranthads/work-zen-frontend:latest
+    image: shiranthads/work-zen-frontend:${IMAGE_TAG}  # ✅ UPDATED
     container_name: ems-frontend
     ports:
       - "3000:3000"

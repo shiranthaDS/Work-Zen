@@ -30,7 +30,6 @@ pipeline {
             steps {
                 echo '🔧 Setting up environment variables...'
                 script {
-                    // Create .env file from Jenkins credentials
                     withCredentials([
                         string(credentialsId: 'mongo-url', variable: 'MONGO_URL'),
                         string(credentialsId: 'mongo-db-name', variable: 'MONGO_DB_NAME'),
@@ -56,22 +55,14 @@ EOF
         stage('Lint & Test Backend') {
             steps {
                 echo '🧪 Skipping backend tests (no tests configured)...'
-                script {
-                    sh '''
-                        echo "Backend stage skipped - tests will be added later"
-                    '''
-                }
+                sh 'echo "Backend stage skipped - tests will be added later"'
             }
         }
         
         stage('Lint & Test Frontend') {
             steps {
                 echo '🧪 Skipping frontend tests (no tests configured)...'
-                script {
-                    sh '''
-                        echo "Frontend stage skipped - tests will be added later"
-                    '''
-                }
+                sh 'echo "Frontend stage skipped - tests will be added later"'
             }
         }
         
@@ -79,18 +70,18 @@ EOF
             steps {
                 echo '🐳 Building Docker images...'
                 script {
-                    // Build backend image
                     sh """
-                        docker build -f backend/Dockerfile -t ${DOCKER_IMAGE_BACKEND}:${env.BUILD_NUMBER} -t ${DOCKER_IMAGE_BACKEND}:latest .
+                        docker build -f backend/Dockerfile \
+                        -t ${DOCKER_IMAGE_BACKEND}:${env.BUILD_NUMBER} \
+                        -t ${DOCKER_IMAGE_BACKEND}:latest .
                     """
-                    
-                    // Build frontend image with API URL
+
                     sh """
                         docker build -f frontend/Dockerfile \
-                          --build-arg NEXT_PUBLIC_API_URL=http://${EC2_HOST}:8000 \
-                          -t ${DOCKER_IMAGE_FRONTEND}:${env.BUILD_NUMBER} \
-                          -t ${DOCKER_IMAGE_FRONTEND}:latest \
-                          ./frontend
+                        --build-arg NEXT_PUBLIC_API_URL=http://${EC2_HOST}:8000 \
+                        -t ${DOCKER_IMAGE_FRONTEND}:${env.BUILD_NUMBER} \
+                        -t ${DOCKER_IMAGE_FRONTEND}:latest \
+                        ./frontend
                     """
                 }
             }
@@ -102,9 +93,8 @@ EOF
             }
             steps {
                 echo '📤 Pushing Docker images to registry...'
-                echo "Current branch: ${env.GIT_BRANCH} / ${env.BRANCH_NAME}"
                 script {
-                    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         sh '''
                             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                             docker push ${DOCKER_IMAGE_BACKEND}:${BUILD_NUMBER}
@@ -112,9 +102,6 @@ EOF
                             docker push ${DOCKER_IMAGE_FRONTEND}:${BUILD_NUMBER}
                             docker push ${DOCKER_IMAGE_FRONTEND}:latest
                             docker logout
-                            
-                            echo "⏳ Waiting 30 seconds for Docker Hub to process images..."
-                            sleep 30
                         '''
                     }
                 }
@@ -128,48 +115,28 @@ EOF
             steps {
                 echo '🚀 Deploying to EC2 instance...'
                 script {
-                    withCredentials([sshUserPrivateKey(credentialsId: EC2_CREDENTIALS_ID, keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
+                    withCredentials([sshUserPrivateKey(credentialsId: EC2_CREDENTIALS_ID, keyFileVariable: 'SSH_KEY')]) {
                         sh '''
-                            # Copy .env file to EC2
                             scp -i $SSH_KEY -o StrictHostKeyChecking=no .env ${EC2_USER}@${EC2_HOST}:${DEPLOY_PATH}/.env
-                            
-                            # Copy docker-compose.yml to EC2
                             scp -i $SSH_KEY -o StrictHostKeyChecking=no docker-compose.yml ${EC2_USER}@${EC2_HOST}:${DEPLOY_PATH}/docker-compose.yml
-                            
-                            # SSH into EC2 and deploy
+
                             ssh -i $SSH_KEY -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'ENDSSH'
 cd ${DEPLOY_PATH}
 
-# Pull latest code
 git pull origin main
 
-# Stop and remove old containers
-echo "=== Removing old containers ==="
+echo "=== Stopping old containers ==="
 docker-compose down
 
-# Remove cached images to force fresh pull
-echo "=== Removing cached images ==="
-docker rmi shiranthads/work-zen-frontend:latest shiranthads/work-zen-backend:latest 2>/dev/null || true
+echo "=== Pulling exact build images ==="
+export IMAGE_TAG=${BUILD_NUMBER}   # ✅ UPDATED (KEY FIX)
+docker-compose pull
 
-# Pull latest Docker images from Docker Hub with retry logic
-echo "=== Pulling fresh images from Docker Hub ==="
-for i in {1..5}; do
-    docker-compose pull && break || echo "Retrying pull ($i/5)..."
-    sleep 10
-done
-
-# Start new containers with --pull flag to ensure latest images
 echo "=== Starting containers ==="
-docker-compose up -d --pull always
+docker-compose up -d
 
-# Wait for containers to start
-sleep 5
-
-# Show status
-echo "=== New container status ==="
-docker-compose ps --format 'table {{.Name}}\t{{.Image}}\t{{.Status}}'
-
-echo "✅ Deployment completed successfully!"
+echo "=== Running containers ==="
+docker-compose ps
 ENDSSH
                         '''
                     }
@@ -183,19 +150,11 @@ ENDSSH
             }
             steps {
                 echo '🏥 Performing health check...'
-                script {
-                    sh """
-                        sleep 15
-                        
-                        # Check backend health
-                        curl -f http://${EC2_HOST}:8000/health || echo "Backend health check failed"
-                        
-                        # Check frontend
-                        curl -f http://${EC2_HOST}:3000 || echo "Frontend health check failed"
-                        
-                        echo "Health checks completed"
-                    """
-                }
+                sh """
+                    sleep 15
+                    curl -f http://${EC2_HOST}:8000/health || echo "Backend health check failed"
+                    curl -f http://${EC2_HOST}:3000 || echo "Frontend health check failed"
+                """
             }
         }
     }
@@ -203,11 +162,9 @@ ENDSSH
     post {
         success {
             echo '✅ Pipeline completed successfully!'
-            // Send notification (Slack, Email, etc.)
         }
         failure {
             echo '❌ Pipeline failed!'
-            // Send failure notification
         }
         always {
             echo '🧹 Cleaning up workspace...'

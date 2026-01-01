@@ -214,8 +214,8 @@
       "targets": [
         {
           "datasource": "Prometheus",
-          "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{job=\"cadvisor\",name=~\"work-zen.*\"}[5m])) * 100",
-          "legendFormat": "{{name}}",
+          "expr": "sum by (id) (rate(container_cpu_usage_seconds_total{job=\"cadvisor\",id=~\"/system.slice/docker-.*\"}[5m])) * 100",
+          "legendFormat": "{{id}}",
           "refId": "A"
         }
       ]
@@ -260,8 +260,8 @@
       "targets": [
         {
           "datasource": "Prometheus",
-          "expr": "sum by (name) (container_memory_usage_bytes{job=\"cadvisor\",name=~\"work-zen.*\"})",
-          "legendFormat": "{{name}}",
+          "expr": "sum by (id) (container_memory_usage_bytes{job=\"cadvisor\",id=~\"/system.slice/docker-.*\"})",
+          "legendFormat": "{{id}}",
           "refId": "A"
         }
       ]

@@ -1,7 +1,7 @@
 services:
   backend:
-    image: shiranthads/work-zen-backend:${IMAGE_TAG}   # ✅ UPDATED
-    container_name: ems-backend
+    image: shiranthads/work-zen-backend:${IMAGE_TAG:-latest}
+    container_name: work-zen-backend
     ports:
       - "8000:8000"
     environment:
@@ -12,11 +12,11 @@ services:
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
     restart: unless-stopped
     networks:
-      - ems-network
+      - work-zen-network
 
   frontend:
-    image: shiranthads/work-zen-frontend:${IMAGE_TAG}  # ✅ UPDATED
-    container_name: ems-frontend
+    image: shiranthads/work-zen-frontend:${IMAGE_TAG:-latest}
+    container_name: work-zen-frontend
     ports:
       - "3000:3000"
     environment:
@@ -25,8 +25,9 @@ services:
       - backend
     restart: unless-stopped
     networks:
-      - ems-network
+      - work-zen-network
 
 networks:
-  ems-network:
+  work-zen-network:
     driver: bridge
+    name: work-zen-network

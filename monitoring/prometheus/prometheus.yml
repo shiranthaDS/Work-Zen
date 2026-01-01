@@ -1,0 +1,78 @@
+# =============================================================================
+# Prometheus Configuration for Work-Zen
+# =============================================================================
+# Optimized for t3.micro EC2 instance
+# =============================================================================
+
+global:
+  scrape_interval: 30s          # Longer interval to reduce resource usage
+  evaluation_interval: 30s
+  scrape_timeout: 10s
+
+# Alertmanager configuration (optional - can be added later)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+# Rule files (optional)
+# rule_files:
+#   - "alert_rules.yml"
+
+# Scrape configurations
+scrape_configs:
+  # ==========================================================================
+  # Prometheus self-monitoring
+  # ==========================================================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          instance: 'prometheus'
+
+  # ==========================================================================
+  # Node Exporter - System metrics (CPU, Memory, Disk, Network)
+  # ==========================================================================
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          instance: 'work-zen-server'
+
+  # ==========================================================================
+  # Docker containers via cAdvisor
+  # ==========================================================================
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          instance: 'work-zen-containers'
+
+  # ==========================================================================
+  # Work-Zen Backend (FastAPI)
+  # ==========================================================================
+  - job_name: 'work-zen-backend'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['backend:8000']
+        labels:
+          app: 'work-zen'
+          service: 'backend'
+
+  # ==========================================================================
+  # Work-Zen Frontend (Next.js) - Basic HTTP probe
+  # ==========================================================================
+  - job_name: 'work-zen-frontend'
+    metrics_path: '/api/health'
+    static_configs:
+      - targets: ['frontend:3000']
+        labels:
+          app: 'work-zen'
+          service: 'frontend'
+    # Relabel to handle non-prometheus endpoints
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - target_label: __address__
+        replacement: 'frontend:3000'

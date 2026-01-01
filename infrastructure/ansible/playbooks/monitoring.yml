@@ -1,0 +1,185 @@
+---
+# =============================================================================
+# Work-Zen Monitoring Deployment Playbook
+# =============================================================================
+# Purpose: Deploy Prometheus & Grafana monitoring stack
+# Usage: ansible-playbook -i inventory/production.ini playbooks/monitoring.yml
+# Optimized for t3.micro EC2 instance
+# =============================================================================
+
+- name: Deploy Work-Zen Monitoring Stack
+  hosts: app_servers
+  become: yes
+  gather_facts: yes
+
+  vars:
+    app_user: ubuntu
+    app_dir: /home/ubuntu/Work-Zen
+    grafana_password: "{{ lookup('env', 'GRAFANA_PASSWORD') | default('WorkZen@2024', true) }}"
+
+  pre_tasks:
+    - name: Display deployment information
+      debug:
+        msg: |
+          📊 Deploying Work-Zen Monitoring Stack
+          ======================================
+          Environment: {{ environment }}
+          Host: {{ ansible_host }}
+          Instance Type: t3.micro (1 vCPU, 1GB RAM)
+          ======================================
+
+    - name: Check available memory
+      shell: free -m | awk '/^Mem:/{print $2}'
+      register: total_memory
+      changed_when: false
+
+    - name: Warn if low memory
+      debug:
+        msg: "⚠️  Low memory detected ({{ total_memory.stdout }}MB). Monitoring stack is optimized for this."
+      when: total_memory.stdout | int < 1500
+
+  tasks:
+    # =========================================================================
+    # Prerequisites
+    # =========================================================================
+    - name: Ensure Docker network exists
+      community.docker.docker_network:
+        name: work-zen-network
+        state: present
+
+    - name: Create monitoring directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+      loop:
+        - "{{ app_dir }}/monitoring"
+        - "{{ app_dir }}/monitoring/prometheus"
+        - "{{ app_dir }}/monitoring/grafana"
+        - "{{ app_dir }}/monitoring/grafana/provisioning"
+        - "{{ app_dir }}/monitoring/grafana/provisioning/datasources"
+        - "{{ app_dir }}/monitoring/grafana/provisioning/dashboards"
+
+    # =========================================================================
+    # Copy Configuration Files
+    # =========================================================================
+    - name: Pull latest code (includes monitoring configs)
+      git:
+        repo: "https://github.com/shiranthaDS/Work-Zen.git"
+        dest: "{{ app_dir }}"
+        version: main
+        force: yes
+      become_user: "{{ app_user }}"
+
+    # =========================================================================
+    # Stop Existing Monitoring (if any)
+    # =========================================================================
+    - name: Stop existing monitoring containers
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        files:
+          - docker-compose.monitoring.yml
+        state: absent
+      ignore_errors: yes
+
+    # =========================================================================
+    # Start Monitoring Stack
+    # =========================================================================
+    - name: Start monitoring stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        files:
+          - docker-compose.monitoring.yml
+        state: present
+        pull: always
+      environment:
+        EC2_HOST: "{{ ansible_host }}"
+        GRAFANA_PASSWORD: "{{ grafana_password }}"
+
+    # =========================================================================
+    # Wait for Services
+    # =========================================================================
+    - name: Wait for Prometheus to be ready
+      wait_for:
+        host: localhost
+        port: 9090
+        delay: 5
+        timeout: 60
+
+    - name: Wait for Grafana to be ready
+      wait_for:
+        host: localhost
+        port: 3001
+        delay: 5
+        timeout: 60
+
+    # =========================================================================
+    # Health Checks
+    # =========================================================================
+    - name: Check Prometheus health
+      uri:
+        url: "http://localhost:9090/-/healthy"
+        method: GET
+        status_code: 200
+      register: prometheus_health
+      retries: 3
+      delay: 5
+      until: prometheus_health.status == 200
+
+    - name: Check Grafana health
+      uri:
+        url: "http://localhost:3001/api/health"
+        method: GET
+        status_code: 200
+      register: grafana_health
+      retries: 3
+      delay: 5
+      until: grafana_health.status == 200
+
+    # =========================================================================
+    # Configure Firewall
+    # =========================================================================
+    - name: Allow monitoring ports through firewall
+      ufw:
+        rule: allow
+        port: "{{ item.port }}"
+        proto: tcp
+        comment: "{{ item.comment }}"
+      loop:
+        - { port: '9090', comment: 'Prometheus' }
+        - { port: '3001', comment: 'Grafana' }
+        - { port: '9100', comment: 'Node Exporter' }
+        - { port: '8081', comment: 'cAdvisor' }
+
+  post_tasks:
+    - name: Get monitoring container status
+      command: docker ps --filter "name=work-zen" --format "table {{'{{'}}.Names{{'}}'}}\t{{'{{'}}.Status{{'}}'}}\t{{'{{'}}.Ports{{'}}'}}"
+      register: monitoring_status
+      changed_when: false
+
+    - name: Display monitoring summary
+      debug:
+        msg: |
+          ✅ Monitoring Stack Deployed!
+          ========================================
+          
+          🐳 Container Status:
+          {{ monitoring_status.stdout }}
+          
+          📊 Access URLs:
+          ----------------------------------------
+          Prometheus:    http://{{ ansible_host }}:9090
+          Grafana:       http://{{ ansible_host }}:3001
+            - Username:  admin
+            - Password:  {{ grafana_password }}
+          Node Exporter: http://{{ ansible_host }}:9100/metrics
+          cAdvisor:      http://{{ ansible_host }}:8081
+          
+          💡 Resource Usage (optimized for t3.micro):
+          - Prometheus:    256MB RAM limit
+          - Grafana:       256MB RAM limit
+          - Node Exporter: 64MB RAM limit
+          - cAdvisor:      128MB RAM limit
+          ========================================

@@ -1,0 +1,176 @@
+---
+# =============================================================================
+# Work-Zen Deployment Playbook
+# =============================================================================
+# Purpose: Deploy Work-Zen application using Docker Compose
+# Usage: ansible-playbook -i inventory/staging.ini playbooks/deploy.yml
+# =============================================================================
+
+- name: Deploy Work-Zen Application
+  hosts: app_servers
+  become: yes
+  gather_facts: yes
+
+  vars:
+    app_user: ubuntu
+    app_dir: /home/ubuntu/Work-Zen
+    docker_registry: docker.io
+    backend_image: "shiranthads/work-zen-backend:latest"
+    frontend_image: "shiranthads/work-zen-frontend:latest"
+
+  pre_tasks:
+    - name: Display deployment information
+      debug:
+        msg: |
+          🚀 Deploying Work-Zen Application
+          ==================================
+          Environment: {{ environment }}
+          Host: {{ ansible_host }}
+          Backend Image: {{ backend_image }}
+          Frontend Image: {{ frontend_image }}
+          ==================================
+
+    - name: Check if .env file exists
+      stat:
+        path: "{{ app_dir }}/.env"
+      register: env_file
+
+    - name: Fail if .env file is missing
+      fail:
+        msg: |
+          ❌ .env file not found at {{ app_dir }}/.env
+          Please copy the .env file first:
+          scp .env ubuntu@{{ ansible_host }}:{{ app_dir }}/.env
+      when: not env_file.stat.exists
+
+  tasks:
+    # =========================================================================
+    # Pre-deployment
+    # =========================================================================
+    - name: Pull latest code from repository
+      git:
+        repo: "https://github.com/shiranthaDS/Work-Zen.git"
+        dest: "{{ app_dir }}"
+        version: main
+        force: yes
+      become_user: "{{ app_user }}"
+
+    # =========================================================================
+    # Stop Existing Containers
+    # =========================================================================
+    - name: Stop existing containers
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        state: absent
+      ignore_errors: yes
+
+    # =========================================================================
+    # Clean Old Images
+    # =========================================================================
+    - name: Remove old Docker images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        state: absent
+        force_absent: yes
+      loop:
+        - "{{ backend_image }}"
+        - "{{ frontend_image }}"
+      ignore_errors: yes
+
+    - name: Prune unused Docker resources
+      community.docker.docker_prune:
+        containers: yes
+        images: yes
+        networks: yes
+        volumes: no  # Keep volumes to preserve data
+        builder_cache: yes
+
+    # =========================================================================
+    # Pull Latest Images
+    # =========================================================================
+    - name: Pull latest backend image
+      community.docker.docker_image:
+        name: "{{ backend_image }}"
+        source: pull
+        force_source: yes
+      register: backend_pull
+
+    - name: Pull latest frontend image
+      community.docker.docker_image:
+        name: "{{ frontend_image }}"
+        source: pull
+        force_source: yes
+      register: frontend_pull
+
+    - name: Display pulled images
+      debug:
+        msg: |
+          📦 Images pulled:
+          Backend: {{ backend_pull.image.Id[:12] if backend_pull.image is defined else 'N/A' }}
+          Frontend: {{ frontend_pull.image.Id[:12] if frontend_pull.image is defined else 'N/A' }}
+
+    # =========================================================================
+    # Deploy Application
+    # =========================================================================
+    - name: Start containers with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        state: present
+        pull: always
+        recreate: always
+      register: compose_result
+
+    - name: Wait for services to be healthy
+      wait_for:
+        host: localhost
+        port: "{{ item.port }}"
+        delay: 5
+        timeout: 60
+      loop:
+        - { name: 'Backend', port: 8000 }
+        - { name: 'Frontend', port: 3000 }
+
+    # =========================================================================
+    # Health Checks
+    # =========================================================================
+    - name: Check backend health
+      uri:
+        url: "http://localhost:8000/health"
+        method: GET
+        status_code: 200
+      register: backend_health
+      retries: 5
+      delay: 10
+      until: backend_health.status == 200
+
+    - name: Check frontend health
+      uri:
+        url: "http://localhost:3000"
+        method: GET
+        status_code: 200
+      register: frontend_health
+      retries: 5
+      delay: 10
+      until: frontend_health.status == 200
+
+  post_tasks:
+    - name: Get running containers
+      command: docker ps --format "table {{'{{'}}.Names{{'}}'}}\t{{'{{'}}.Image{{'}}'}}\t{{'{{'}}.Status{{'}}'}}"
+      register: docker_ps
+      changed_when: false
+
+    - name: Display deployment summary
+      debug:
+        msg: |
+          ✅ Deployment Complete!
+          ========================
+          Environment: {{ environment }}
+          
+          🐳 Running Containers:
+          {{ docker_ps.stdout }}
+          
+          🌐 Access URLs:
+          Frontend: http://{{ ansible_host }}:3000
+          Backend:  http://{{ ansible_host }}:8000
+          Health:   http://{{ ansible_host }}:8000/health
+          ========================

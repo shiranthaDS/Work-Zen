@@ -1,0 +1,131 @@
+---
+# =============================================================================
+# Work-Zen Rollback Playbook
+# =============================================================================
+# Purpose: Rollback to a specific version of the application
+# Usage: ansible-playbook -i inventory/staging.ini playbooks/rollback.yml -e "version=v1.0.0"
+# =============================================================================
+
+- name: Rollback Work-Zen Application
+  hosts: app_servers
+  become: yes
+  gather_facts: yes
+
+  vars:
+    app_user: ubuntu
+    app_dir: /home/ubuntu/Work-Zen
+    version: "{{ rollback_version | default('latest') }}"
+    backend_image: "shiranthads/work-zen-backend:{{ version }}"
+    frontend_image: "shiranthads/work-zen-frontend:{{ version }}"
+
+  pre_tasks:
+    - name: Display rollback information
+      debug:
+        msg: |
+          ⏪ Rolling Back Work-Zen Application
+          ====================================
+          Environment: {{ environment }}
+          Target Version: {{ version }}
+          Backend Image: {{ backend_image }}
+          Frontend Image: {{ frontend_image }}
+          ====================================
+
+    - name: Confirm rollback
+      pause:
+        prompt: "Are you sure you want to rollback to version {{ version }}? (yes/no)"
+      register: confirm
+      when: confirm_rollback | default(true)
+
+    - name: Abort if not confirmed
+      fail:
+        msg: "Rollback cancelled by user"
+      when: 
+        - confirm_rollback | default(true)
+        - confirm.user_input | lower != 'yes'
+
+  tasks:
+    # =========================================================================
+    # Stop Current Deployment
+    # =========================================================================
+    - name: Stop current containers
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        state: absent
+
+    # =========================================================================
+    # Pull Rollback Version
+    # =========================================================================
+    - name: Pull rollback version - backend
+      community.docker.docker_image:
+        name: "{{ backend_image }}"
+        source: pull
+        force_source: yes
+
+    - name: Pull rollback version - frontend
+      community.docker.docker_image:
+        name: "{{ frontend_image }}"
+        source: pull
+        force_source: yes
+
+    # =========================================================================
+    # Update docker-compose.yml with specific version
+    # =========================================================================
+    - name: Update docker-compose.yml with rollback version
+      lineinfile:
+        path: "{{ app_dir }}/docker-compose.yml"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - regexp: 'image: shiranthads/work-zen-backend:'
+          line: "    image: {{ backend_image }}"
+        - regexp: 'image: shiranthads/work-zen-frontend:'
+          line: "    image: {{ frontend_image }}"
+
+    # =========================================================================
+    # Start Rollback Version
+    # =========================================================================
+    - name: Start containers with rollback version
+      community.docker.docker_compose_v2:
+        project_src: "{{ app_dir }}"
+        state: present
+        recreate: always
+
+    # =========================================================================
+    # Verify Rollback
+    # =========================================================================
+    - name: Wait for services to be healthy
+      wait_for:
+        host: localhost
+        port: "{{ item }}"
+        delay: 5
+        timeout: 60
+      loop:
+        - 8000
+        - 3000
+
+    - name: Verify backend health
+      uri:
+        url: "http://localhost:8000/health"
+        method: GET
+        status_code: 200
+      retries: 3
+      delay: 5
+
+  post_tasks:
+    - name: Get container status
+      command: docker ps --format "table {{'{{'}}.Names{{'}}'}}\t{{'{{'}}.Image{{'}}'}}\t{{'{{'}}.Status{{'}}'}}"
+      register: docker_status
+      changed_when: false
+
+    - name: Display rollback summary
+      debug:
+        msg: |
+          ✅ Rollback Complete!
+          =====================
+          Rolled back to: {{ version }}
+          
+          Running Containers:
+          {{ docker_status.stdout }}
+          
+          ⚠️  Remember to investigate the issue before re-deploying!
+          =====================

@@ -1,9 +1,15 @@
 import axios from 'axios';
 
+// API URL configuration
+// In production: https://workzen.duckdns.org (NGINX routes /api to backend)
+// In development: http://localhost:8000
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+// Remove trailing slash if present
+const baseURL = API_URL.replace(/\/+$/, '');
+
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

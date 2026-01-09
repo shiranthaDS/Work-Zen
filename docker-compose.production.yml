@@ -1,0 +1,78 @@
+# Production Docker Compose with NGINX and SSL
+# This file is designed for EC2 deployment with HTTPS
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: work-zen-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/logs:/var/log/nginx
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      - backend
+      - frontend
+    restart: unless-stopped
+    networks:
+      - work-zen-network
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: work-zen-backend:production
+    container_name: work-zen-backend
+    expose:
+      - "8000"
+    environment:
+      - MONGO_URL=${MONGO_URL}
+      - MONGO_DB_NAME=${MONGO_DB_NAME:-ems_database}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
+      - FRONTEND_URL=${FRONTEND_URL:-https://workzen.duckdns.org}
+    restart: unless-stopped
+    networks:
+      - work-zen-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # IMPORTANT: This URL is baked into the build
+        # Use base URL without /api - the api.ts adds /api/ prefix
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://workzen.duckdns.org}
+    image: work-zen-frontend:production
+    container_name: work-zen-frontend
+    expose:
+      - "3000"
+    restart: unless-stopped
+    networks:
+      - work-zen-network
+
+  certbot:
+    image: certbot/certbot
+    container_name: work-zen-certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - work-zen-network
+
+networks:
+  work-zen-network:
+    driver: bridge
+    name: work-zen-network

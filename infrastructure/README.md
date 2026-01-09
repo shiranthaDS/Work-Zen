@@ -238,7 +238,7 @@ ansible-playbook -i inventory/production.ini playbooks/rollback.yml \
 
 | Aspect | Staging | Production |
 |--------|---------|------------|
-| Instance Type | t3.small | t3.medium |
+| Instance Type | t3.micro | t3.micro |
 | VPC CIDR | 10.1.0.0/16 | 10.0.0.0/16 |
 | Volume Size | 20 GB | 30 GB |
 | Elastic IP | Yes | Yes |

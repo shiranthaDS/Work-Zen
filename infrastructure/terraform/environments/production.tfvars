@@ -13,8 +13,8 @@ aws_region    = "eu-north-1"
 vpc_cidr            = "10.0.0.0/16"
 public_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
 
-# EC2 - Larger instance for production
-instance_type        = "t3.medium"
+# EC2
+instance_type        = "t3.micro"
 key_pair_name        = "EMSkey"  # Your existing key pair
 ssh_private_key_path = "~/Downloads/EMSkey.pem"
 root_volume_size     = 30

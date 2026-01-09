@@ -19,7 +19,7 @@ pipeline {
         
         // Production URLs (HTTPS)
         PRODUCTION_DOMAIN = 'workzen.duckdns.org'
-        PRODUCTION_API_URL = 'https://workzen.duckdns.org/api'
+        PRODUCTION_API_URL = 'https://workzen.duckdns.org'
         PRODUCTION_FRONTEND_URL = 'https://workzen.duckdns.org'
     }
     
@@ -49,7 +49,7 @@ MONGO_DB_NAME=${MONGO_DB_NAME}
 OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
 HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
 FRONTEND_URL=https://workzen.duckdns.org
-NEXT_PUBLIC_API_URL=https://workzen.duckdns.org/api
+NEXT_PUBLIC_API_URL=https://workzen.duckdns.org
 EOF
                         '''
                     }
@@ -83,7 +83,7 @@ EOF
 
                     sh """
                         docker build -f frontend/Dockerfile \
-                        --build-arg NEXT_PUBLIC_API_URL=https://workzen.duckdns.org/api \
+                        --build-arg NEXT_PUBLIC_API_URL=https://workzen.duckdns.org \
                         -t ${DOCKER_IMAGE_FRONTEND}:${env.BUILD_NUMBER} \
                         -t ${DOCKER_IMAGE_FRONTEND}:latest \
                         ./frontend

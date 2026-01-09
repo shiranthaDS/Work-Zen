@@ -16,6 +16,11 @@ pipeline {
         EC2_USER = 'ubuntu'
         EC2_CREDENTIALS_ID = 'ec2-ssh-key'
         DEPLOY_PATH = '/home/ubuntu/Work-Zen'
+        
+        // Production URLs (HTTPS)
+        PRODUCTION_DOMAIN = 'workzen.duckdns.org'
+        PRODUCTION_API_URL = 'https://workzen.duckdns.org/api'
+        PRODUCTION_FRONTEND_URL = 'https://workzen.duckdns.org'
     }
     
     stages {
@@ -43,8 +48,8 @@ MONGO_URL=${MONGO_URL}
 MONGO_DB_NAME=${MONGO_DB_NAME}
 OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
 HUGGINGFACE_API_KEY=${HUGGINGFACE_API_KEY}
-FRONTEND_URL=${FRONTEND_URL}
-NEXT_PUBLIC_API_URL=http://${EC2_HOST}:8000
+FRONTEND_URL=https://workzen.duckdns.org
+NEXT_PUBLIC_API_URL=https://workzen.duckdns.org/api
 EOF
                         '''
                     }
@@ -78,7 +83,7 @@ EOF
 
                     sh """
                         docker build -f frontend/Dockerfile \
-                        --build-arg NEXT_PUBLIC_API_URL=http://${EC2_HOST}:8000 \
+                        --build-arg NEXT_PUBLIC_API_URL=https://workzen.duckdns.org/api \
                         -t ${DOCKER_IMAGE_FRONTEND}:${env.BUILD_NUMBER} \
                         -t ${DOCKER_IMAGE_FRONTEND}:latest \
                         ./frontend

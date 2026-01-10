@@ -48,6 +48,12 @@ out/
 .env.local
 .env.development.local
 .env.test.local
+.env.example
+
+# Scripts and deployment files
+*.sh
+scripts/
+NGINX_SETUP.md
 .env.production.local
 
 # IDE

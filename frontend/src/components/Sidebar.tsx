@@ -124,19 +124,9 @@ export default function Sidebar() {
       )}
 
       {/* Sidebar */}
-          
-          {/* User info */}
-          <div className="mt-4 pt-4 border-t border-gray-800">
-            <div className="flex items-center gap-2 text-sm">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-semibold">{username?.[0]?.toUpperCase() || 'A'}</span>
-              </div>
-              <span className="text-gray-300">{username || 'Admin'}</span>
-            </div>
-          </div>
-        </div>
-
-        <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-200px)]">{" "}
+      <aside className={`
+        fixed top-0 left-0 h-full w-64 bg-gray-900 shadow-xl z-40 transform transition-transform duration-300
+        lg:translate-x-0
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="p-6 border-b border-gray-800">
@@ -149,9 +139,19 @@ export default function Sidebar() {
               <p className="text-xs text-gray-400">Employee Management</p>
             </div>
           </Link>
+          
+          {/* User info */}
+          <div className="mt-4 pt-4 border-t border-gray-800">
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                <span className="text-white font-semibold">{username?.[0]?.toUpperCase() || 'A'}</span>
+              </div>
+              <span className="text-gray-300">{username || 'Admin'}</span>
+            </div>
+          </div>
         </div>
 
-        <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-100px)]">
+        <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-200px)]">
           {menuItems.map((item) => (
             <div key={item.name}>
               {item.submenu ? (
@@ -190,6 +190,16 @@ export default function Sidebar() {
               ) : (
                 <Link
                   href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.href) ? 'bg-primary-600 text-white font-medium' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
+                >
+                  <item.icon size={20} />
+                  <span>{item.name}</span>
+                </Link>
+              )}
+            </div>
+          ))}
+        </nav>
         
         {/* Logout button */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800 bg-gray-900">
@@ -201,17 +211,8 @@ export default function Sidebar() {
             <span>Logout</span>
           </button>
         </div>
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.href) ? 'bg-primary-600 text-white font-medium' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
-                >
-                  <item.icon size={20} />
-                  <span>{item.name}</span>
-                </Link>
-              )}
-            </div>
-          ))}
-        </nav>
       </aside>
     </>
   );
 }
+

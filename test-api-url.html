@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API URL Test</title>
+</head>
+<body>
+    <h1>Testing API Connection</h1>
+    <button id="testBtn">Test Login Endpoint</button>
+    <pre id="output"></pre>
+
+    <script>
+        const API_URL = 'https://workzen.duckdns.org';
+        
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            const output = document.getElementById('output');
+            output.textContent = 'Testing...\n';
+            
+            try {
+                const url = `${API_URL}/api/auth/login`;
+                output.textContent += `Calling: ${url}\n`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        username: 'admin', 
+                        password: 'wrongpassword' 
+                    }),
+                });
+                
+                output.textContent += `Status: ${response.status}\n`;
+                output.textContent += `Status Text: ${response.statusText}\n`;
+                
+                const data = await response.json();
+                output.textContent += `Response: ${JSON.stringify(data, null, 2)}\n`;
+            } catch (err) {
+                output.textContent += `Error: ${err.message}\n`;
+                output.textContent += `Error details: ${JSON.stringify(err, null, 2)}\n`;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -101,10 +101,7 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Default credentials:</p>
-          <p className="font-mono text-xs mt-1">
-            Username: <span className="font-semibold">admin</span> | Password: <span className="font-semibold">admin123</span>
-          </p>
+         
         </div>
       </div>
     </div>

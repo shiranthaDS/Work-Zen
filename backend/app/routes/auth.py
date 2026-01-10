@@ -37,7 +37,7 @@ async def login(request: LoginRequest):
     
     Credentials are stored in MongoDB users collection
     """
-    db = await get_database()
+    db = get_database()
     users_collection = db.users
     
     # Find user by username

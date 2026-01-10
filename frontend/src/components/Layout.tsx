@@ -1,9 +1,24 @@
 'use client';
 
 import { Toaster } from 'react-hot-toast';
+import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isLoginPage = pathname === '/login';
+
+  // If it's the login page, render without sidebar
+  if (isLoginPage) {
+    return (
+      <>
+        <Toaster position="top-right" />
+        {children}
+      </>
+    );
+  }
+
+  // Normal layout with sidebar
   return (
     <div className="min-h-screen bg-gray-50">
       <Toaster position="top-right" />

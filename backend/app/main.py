@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 import os
 from app.database import connect_to_mongo, close_mongo_connection
 from app.mcp_client import mcp_client
-from app.routes import employees, job_data, attendance, leaves, payroll, chat
+from app.routes import employees, job_data, attendance, leaves, payroll, chat, auth
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -43,6 +43,8 @@ app = FastAPI(
 allowed_origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://workzen.duckdns.org",
+    "*"  # Allow all origins for development
 ]
 
 # Add EC2 frontend origin if FRONTEND_URL is set
@@ -57,7 +59,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+auth.router)  # Auth router
+app.include_router(
 # Include routers
 app.include_router(employees.router, prefix="/api")
 app.include_router(job_data.router, prefix="/api")

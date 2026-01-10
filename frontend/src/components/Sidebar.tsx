@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   FiHome, 
   FiUsers, 
@@ -14,7 +14,8 @@ import {
   FiMenu,
   FiX,
   FiChevronDown,
-  FiChevronRight
+  FiChevronRight,
+  FiLogOut
 } from 'react-icons/fi';
 
 const menuItems = [
@@ -73,8 +74,23 @@ const menuItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [username, setUsername] = useState<string | null>(null);
+
+  // Get username from localStorage
+  useState(() => {
+    if (typeof window !== 'undefined') {
+      setUsername(localStorage.getItem('username'));
+    }
+  });
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('username');
+    router.push('/login');
+  };
 
   const toggleSubmenu = (name: string) => {
     setExpandedItems(prev => 
@@ -108,9 +124,19 @@ export default function Sidebar() {
       )}
 
       {/* Sidebar */}
-      <aside className={`
-        fixed top-0 left-0 h-full w-64 bg-gray-900 shadow-xl z-40 transform transition-transform duration-300
-        lg:translate-x-0
+          
+          {/* User info */}
+          <div className="mt-4 pt-4 border-t border-gray-800">
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                <span className="text-white font-semibold">{username?.[0]?.toUpperCase() || 'A'}</span>
+              </div>
+              <span className="text-gray-300">{username || 'Admin'}</span>
+            </div>
+          </div>
+        </div>
+
+        <nav className="p-4 space-y-1 overflow-y-auto h-[calc(100vh-200px)]">{" "}
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="p-6 border-b border-gray-800">
@@ -164,6 +190,17 @@ export default function Sidebar() {
               ) : (
                 <Link
                   href={item.href}
+        
+        {/* Logout button */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-800 bg-gray-900">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
+          >
+            <FiLogOut size={20} />
+            <span>Logout</span>
+          </button>
+        </div>
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive(item.href) ? 'bg-primary-600 text-white font-medium' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
                 >

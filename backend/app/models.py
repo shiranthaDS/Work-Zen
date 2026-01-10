@@ -4,6 +4,12 @@ from datetime import datetime, date
 from enum import Enum
 
 # Enums
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    MANAGER = "manager"
+    HR = "hr"
+    EMPLOYEE = "employee"
+
 class Gender(str, Enum):
     MALE = "male"
     FEMALE = "female"
@@ -490,6 +496,41 @@ class PayrollResponse(PayrollBase):
     id: str = Field(alias="_id")
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+
+    class Config:
+        populate_by_name = True
+
+# ============== User Models ==============
+class UserBase(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+    role: UserRole = UserRole.EMPLOYEE
+    is_active: bool = True
+
+class UserCreate(UserBase):
+    password: str = Field(..., min_length=6)
+
+class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+    role: Optional[UserRole] = None
+    is_active: Optional[bool] = None
+    password: Optional[str] = Field(None, min_length=6)
+
+class UserInDB(UserBase):
+    id: str = Field(alias="_id")
+    password_hash: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        populate_by_name = True
+
+class UserResponse(UserBase):
+    id: str = Field(alias="_id")
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         populate_by_name = True

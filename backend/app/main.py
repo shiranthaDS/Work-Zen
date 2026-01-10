@@ -59,9 +59,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-auth.router)  # Auth router
-app.include_router(
+
 # Include routers
+app.include_router(auth.router, prefix="/api")  # Auth router
 app.include_router(employees.router, prefix="/api")
 app.include_router(job_data.router, prefix="/api")
 app.include_router(attendance.router, prefix="/api")

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from app.database import get_database
 from app.models import UserRole
 
-router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 # Simple token store (in production, use JWT or Redis)
 TOKENS = {}

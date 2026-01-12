@@ -77,6 +77,14 @@
 │                     RUNNING APPLICATION (PRODUCTION) On EC2                 │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                              │
+│                        ┌──────────────────────┐                             │
+│     Internet (HTTPS)──►│  NGINX Reverse Proxy │                             │
+│     Port 443/80        │  Let's Encrypt SSL   │                             │
+│                        └──────────────────────┘                             │
+│                                 │                                            │
+│                    ┌────────────┴─────────────┐                             │
+│                    │                          │                             │
+│                    ▼                          ▼                             │
 │  ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐     │
 │  │   Frontend       │    │    Backend       │    │   MCP Server     │     │
 │  │   (Next.js)      │◄──►│   (FastAPI)      │◄──►│   (Node.js)      │     │
@@ -111,6 +119,7 @@
 | 🐳 **Containers** | Docker + Compose | Multi-stage builds, optimized images, orchestration |
 | ☁️ **Cloud** | AWS EC2 | Production deployment with t3.micro optimization |
 | 🔒 **Security** | UFW + Security Groups | Firewall rules, minimal port exposure |
+| 🌐 **Reverse Proxy** | NGINX + Let's Encrypt | SSL/TLS termination, HTTPS, load balancing |
 | 📈 **Scalability** | Resource limits | Memory/CPU constraints, horizontal scaling ready |
 
 ---
@@ -155,6 +164,7 @@
 ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)
 ![Ansible](https://img.shields.io/badge/Ansible-EE0000?style=for-the-badge&logo=ansible&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![NGINX](https://img.shields.io/badge/NGINX-009639?style=for-the-badge&logo=nginx&logoColor=white)
 ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white)
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
 
@@ -164,6 +174,8 @@
 - **Terraform** - Infrastructure as Code for AWS
 - **Ansible** - Configuration management and deployment automation
 - **AWS EC2** - Cloud compute (t3.micro optimized)
+- **NGINX** - High-performance reverse proxy and SSL termination
+- **Let's Encrypt** - Free SSL/TLS certificates with auto-renewal
 - **Prometheus** v2.47.0 - Metrics collection and alerting
 - **Grafana** 10.2.0 - Metrics visualization and dashboards
 - **Node Exporter** v1.6.1 - System metrics exporter
@@ -246,6 +258,61 @@ pipeline {
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+---
+
+## 🔒 NGINX + SSL Configuration
+
+### 🌐 Production Setup with HTTPS
+
+Work-Zen uses **NGINX as a reverse proxy** with **Let's Encrypt SSL certificates** for secure HTTPS communication in production.
+
+**Live Production URL:** [https://workzen.duckdns.org](https://workzen.duckdns.org)
+
+### 📋 NGINX Configuration Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         NGINX Reverse Proxy Architecture                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+        Internet (Port 443/80)
+                │
+                ▼
+        ┌───────────────┐
+        │  NGINX Server │ ← Let's Encrypt SSL Certificate
+        │  Port 80/443  │    (Auto-renewal via certbot)
+        └───────────────┘
+                │
+        ┌───────┴────────┐
+        │                │
+        ▼                ▼
+┌──────────────┐  ┌──────────────┐
+│  Frontend    │  │  Backend     │
+│  :3000       │  │  :8000/api/  │
+│  (Next.js)   │  │  (FastAPI)   │
+└──────────────┘  └──────────────┘
+```
+
+### 🔐 SSL/TLS Features
+
+✅ **Automatic HTTPS Redirect** - HTTP (80) → HTTPS (443)  
+✅ **Let's Encrypt Certificate** - Free, auto-renewing SSL/TLS  
+✅ **TLS 1.2 & 1.3 Support** - Modern encryption protocols  
+✅ **A+ SSL Rating** - Strong cipher configuration  
+✅ **HSTS Enabled** - HTTP Strict Transport Security  
+✅ **Certificate Auto-Renewal** - Automated via certbot cron job
+
+
+```
+
+### 📚 Related Documentation
+
+- **NGINX_SETUP.md** - Detailed NGINX configuration guide
+- **AWS_EC2_DEPLOYMENT.md** - EC2 deployment with NGINX
+- **DEPLOYMENT_QUICK_START.md** - Quick deployment guide
+
+---
+
 ### 🗄️ Database Features
 - 🔗 **Foreign Key Relationships**: Proper indexes on `employee_id` linking all collections
 - ⚡ **Optimized MongoDB Queries**: Efficient aggregation pipelines
@@ -298,6 +365,11 @@ docker-compose logs -f frontend     # Frontend only
 # 📚 API Docs: http://localhost:8000/docs
 # 📊 Prometheus: http://localhost:9090
 # 📈 Grafana: http://localhost:3001
+
+# 🌍 Production URL (when deployed):
+# 🔒 Production: https://workzen.duckdns.org
+# 🔒 API: https://workzen.duckdns.org/api/
+# 📚 API Docs: https://workzen.duckdns.org/api/docs
 ```
 
 ### Common Docker Commands 🛠️
